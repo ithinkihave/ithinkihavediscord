@@ -73,7 +73,7 @@ client.on('messageCreate', async msg => {
 
     if (msg.content.toLowerCase().startsWith("i think i have")) {
         try {
-            msg.guild.setName(msg.content.toLowerCase());
+            client.guilds.get(ithinkihaveserver).setName(msg.content.toLowerCase());
         } catch (error) {
             console.error("[bot] error changing server name");
         }
