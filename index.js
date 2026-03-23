@@ -54,9 +54,11 @@ client.on('messageCreate', async msg => {
     if (msg.content.toLowerCase().includes("is this true")) {
         const chance = Math.random();
         if (chance < 0.5) {
-            msg.reply("True");
+            const randomResponse = trueresponses[Math.floor(Math.random() * trueresponses.length)];
+            msg.reply(randomResponse);
         } else {
-            msg.reply("False");
+            const randomResponse = falseresponses[Math.floor(Math.random() * falseresponses.length)];
+            msg.reply(randomResponse);
         }
     }
 
