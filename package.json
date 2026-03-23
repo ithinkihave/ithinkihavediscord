@@ -1,0 +1,18 @@
+{
+  "name": "floorgy-discord-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/InvalidSE/floorgy-discord-bot.git",
+  "author": "Taine Reader <taine.reader@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.16.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "minecraft-status": "^1.1.0",
+    "node-fetch": "^3.3.2",
+    "node-schedule": "^2.1.1",
+    "request": "^2.88.2",
+    "spotify-web-api-node": "^5.0.2"
+  }
+}
