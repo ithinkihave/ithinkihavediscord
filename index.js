@@ -47,6 +47,11 @@ client.on("ready", (client) => {
 });
 
 client.on("messageCreate", async (msg) => {
+  // if self return
+  if(msg.author.id == client.user.id) {
+    return;
+  }
+
   if (msg.guild.id && msg.guild.id == ithinkihaveserver) {
     console.log(`[${msg.author.tag}] ${msg.content}`);
   }
