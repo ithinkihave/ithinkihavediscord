@@ -28,10 +28,7 @@ const responses = [
 
 client.on("ready", (client) => {
   console.log(`yuhh ${client.user.tag} is online.`);
-
-  // print current date nice
   console.log(new Date().toLocaleString("en-NZ"));
-  console.log(new Date(2024, 11, 18, 0, 53, 0).toLocaleString("en-NZ"));
 });
 
 client.on("messageCreate", async (message) => {
