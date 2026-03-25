@@ -32,15 +32,34 @@ client.on("ready", (client) => {
 });
 
 client.on("messageCreate", async (msg) => {
+  // if self return
+  if(msg.author.id == client.user.id) {
+    return;
+  }
+
   if (msg.guild.id && msg.guild.id == ithinkihaveserver) {
     console.log(`[${msg.author.tag}] ${msg.content}`);
+  }
+
+  // check for messages in the 中文 chat and if they contain english delete them
+  if (msg.guild.id && msg.channel.id == 中文 && /[a-zA-Z]/.test(msg.content)) {
+    try {
+      await msg.delete();
+      return;
+    } catch (error) {
+      console.error("[bot] error deleting message in 中文 chat");
+    }
   }
 
   if (msg.author.id == client.user.id) {
     return;
   }
 
-  if (msg.content.toLowerCase().includes("is this true") || msg.content.toLowerCase().includes("这是真的吗") || msg.content.toLowerCase().includes("is this real")) {
+  if (
+    msg.content.toLowerCase().includes("is this true") ||
+    msg.content.toLowerCase().includes("这是真的吗") ||
+    msg.content.toLowerCase().includes("is this real")
+  ) {
     const chance = Math.random();
     if (chance < 0.5) {
       const randomResponse =
@@ -53,22 +72,18 @@ client.on("messageCreate", async (msg) => {
     }
   }
 
-  if (msg.content.toLowerCase().startsWith("i think") || msg.content.toLowerCase().startsWith("我觉得") || msg.content.toLowerCase().startsWith("我想")) {
+  if (
+    msg.content.toLowerCase().startsWith("i think") ||
+    msg.content.toLowerCase().startsWith("我觉得") ||
+    msg.content.toLowerCase().startsWith("我想")
+  ) {
     try {
       (await client.guilds.fetch(ithinkihaveserver)).setName(
         msg.content.toLowerCase(),
       );
+      await msg.react("✅");
     } catch (error) {
       console.error("[bot] error changing server name");
-    }
-  }
-
-  // check for messages in the 中文 chat and if they contain english delete them
-  if (msg.guild.id && msg.guild.id == 中文 && /[a-zA-Z]/.test(msg.content)) {
-    try {
-      await msg.delete();
-    } catch (error) {
-      console.error("[bot] error deleting message in 中文 chat");
     }
   }
 
