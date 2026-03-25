@@ -51,6 +51,17 @@ client.on("messageCreate", async (msg) => {
     console.log(`[${msg.author.tag}] ${msg.content}`);
   }
 
+  // check for messages in the 中文 chat and if they contain english delete them
+  if (msg.guild.id && msg.channel.id == 中文 && /[a-zA-Z]/.test(msg.content)) {
+    try {
+      await msg.delete();
+      return;
+    } catch (error) {
+      console.error("[bot] error deleting message in 中文 chat");
+    }
+  }
+
+
   if (msg.author.id == client.user.id) {
     return;
   }
@@ -78,15 +89,7 @@ client.on("messageCreate", async (msg) => {
     }
   }
 
-  // check for messages in the 中文 chat and if they contain english delete them
-  if (msg.guild.id && msg.channel.id == 中文 && /[a-zA-Z]/.test(msg.content)) {
-    try {
-      await msg.delete();
-    } catch (error) {
-      console.error("[bot] error deleting message in 中文 chat");
-    }
-  }
-
+  
   checkForKeywords(msg);
 });
 
