@@ -84,6 +84,7 @@ client.on("messageCreate", async (msg) => {
       await msg.react("✅");
     } catch (error) {
       console.error("[bot] error changing server name");
+      await msg.react("❌");
     }
   }
 
