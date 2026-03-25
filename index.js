@@ -61,12 +61,15 @@ client.on("messageCreate", async (msg) => {
     }
   }
 
-
   if (msg.author.id == client.user.id) {
     return;
   }
 
-  if (msg.content.toLowerCase().includes("is this true") || msg.content.toLowerCase().includes("这是真的吗") || msg.content.toLowerCase().includes("is this real")) {
+  if (
+    msg.content.toLowerCase().includes("is this true") ||
+    msg.content.toLowerCase().includes("这是真的吗") ||
+    msg.content.toLowerCase().includes("is this real")
+  ) {
     const chance = Math.random();
     if (chance < 0.5) {
       const randomResponse =
@@ -79,17 +82,21 @@ client.on("messageCreate", async (msg) => {
     }
   }
 
-  if (msg.content.toLowerCase().startsWith("i think") || msg.content.toLowerCase().startsWith("我觉得") || msg.content.toLowerCase().startsWith("我想")) {
+  if (
+    msg.content.toLowerCase().startsWith("i think") ||
+    msg.content.toLowerCase().startsWith("我觉得") ||
+    msg.content.toLowerCase().startsWith("我想")
+  ) {
     try {
       (await client.guilds.fetch(ithinkihaveserver)).setName(
         msg.content.toLowerCase(),
       );
+      await msg.react("✅");
     } catch (error) {
       console.error("[bot] error changing server name");
     }
   }
 
-  
   checkForKeywords(msg);
 });
 
