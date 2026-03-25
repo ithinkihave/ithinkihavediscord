@@ -79,7 +79,7 @@ client.on("messageCreate", async (msg) => {
   }
 
   // check for messages in the 中文 chat and if they contain english delete them
-  if (msg.guild.id && msg.guild.id == 中文 && /[a-zA-Z]/.test(msg.content)) {
+  if (msg.guild.id && msg.channel.id == 中文 && /[a-zA-Z]/.test(msg.content)) {
     try {
       await msg.delete();
     } catch (error) {
