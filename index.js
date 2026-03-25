@@ -2,6 +2,8 @@ require("dotenv").config();
 const { Client, GatewayIntentBits, messageLink } = require("discord.js");
 
 const ithinkihaveserver = "1435477855596318742";
+const 中文 = "1486174868054474762";
+
 const trueresponses = [
   "https://tenor.com/view/true-love-gif-18324778560370268269",
   "https://tenor.com/view/fentcord-true-coyote-gif-2599436844608872721",
@@ -53,7 +55,7 @@ client.on("messageCreate", async (msg) => {
     return;
   }
 
-  if (msg.content.toLowerCase().includes("is this true")) {
+  if (msg.content.toLowerCase().includes("is this true") || msg.content.toLowerCase().includes("这是真的吗")) {
     const chance = Math.random();
     if (chance < 0.5) {
       const randomResponse =
@@ -66,13 +68,22 @@ client.on("messageCreate", async (msg) => {
     }
   }
 
-  if (msg.content.toLowerCase().startsWith("i think")) {
+  if (msg.content.toLowerCase().startsWith("i think") || msg.content.toLowerCase().startsWith("我觉得") || msg.content.toLowerCase().startsWith("我想")) {
     try {
       (await client.guilds.fetch(ithinkihaveserver)).setName(
         msg.content.toLowerCase(),
       );
     } catch (error) {
       console.error("[bot] error changing server name");
+    }
+  }
+
+  // check for messages in the 中文 chat and if they contain english delete them
+  if (msg.guild.id && msg.guild.id == 中文 && /[a-zA-Z]/.test(msg.content)) {
+    try {
+      await msg.delete();
+    } catch (error) {
+      console.error("[bot] error deleting message in 中文 chat");
     }
   }
 
