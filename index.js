@@ -35,20 +35,28 @@ client.on("ready", (client) => {
 });
 
 client.on("messageCreate", async (message) => {
-  await handleMessage(message, "create");
+  try {
+    await handleMessage(message, "create");
+  } catch (error) {
+    console.error("[bot] error handling created message", error);
+  }
 });
 
 client.on("messageUpdate", async (oldMessage, newMessage) => {
-  const message = await hydrateMessage(newMessage);
-  if (!message) {
-    return;
-  }
+  try {
+    const message = await hydrateMessage(newMessage);
+    if (!message) {
+      return;
+    }
 
-  if (getNormalizedContent(oldMessage) === getNormalizedContent(message)) {
-    return;
-  }
+    if (getNormalizedContent(oldMessage) === getNormalizedContent(message)) {
+      return;
+    }
 
-  await handleMessage(message, "update");
+    await handleMessage(message, "update");
+  } catch (error) {
+    console.error("[bot] error handling updated message", error);
+  }
 });
 
 client.login(process.env.TOKEN);
@@ -138,6 +146,9 @@ async function replyToTruthQuestion(message) {
 }
 
 function shouldRenameServer(message) {
+  // this should rename the server, no matter where the message was sent
+  // as long as the bot is present.
+
   const content = getNormalizedContent(message);
   return SERVER_NAME_PREFIXES.some((prefix) => content.startsWith(prefix));
 }
@@ -163,6 +174,7 @@ async function checkForKeywords(message) {
       const randomResponse =
         item.responses[Math.floor(Math.random() * item.responses.length)];
       await message.reply(randomResponse);
+      return;
     }
   }
 }
