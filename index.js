@@ -66,7 +66,7 @@ client.on("messageCreate", async (msg) => {
     }
   }
 
-  if (msg.content.toLowerCase().startsWith("i think i have")) {
+  if (msg.content.toLowerCase().startsWith("i think")) {
     try {
       (await client.guilds.fetch(ithinkihaveserver)).setName(
         msg.content.toLowerCase(),
