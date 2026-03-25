@@ -1,8 +1,11 @@
 require("dotenv").config();
-const { Client, GatewayIntentBits, messageLink } = require("discord.js");
+const { Client, GatewayIntentBits } = require("discord.js");
 
-const ithinkihaveserver = "1435477855596318742";
-const 中文 = "1486174868054474762";
+const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
+const CHINESE_CHANNEL_ID = "1486174868054474762";
+const ENGLISH_REGEX = /[a-zA-Z]/;
+const TRUTH_CHECK_PHRASES = ["is this true", "这是真的吗", "is this real"];
+const SERVER_NAME_PREFIXES = ["i think", "我觉得", "我想"];
 
 const trueresponses = require("./res/true.json");
 const falseresponses = require("./res/false.json");
@@ -25,80 +28,151 @@ const responses = [
 
 client.on("ready", (client) => {
   console.log(`yuhh ${client.user.tag} is online.`);
-
-  // print current date nice
   console.log(new Date().toLocaleString("en-NZ"));
-  console.log(new Date(2024, 11, 18, 0, 53, 0).toLocaleString("en-NZ"));
 });
 
-client.on("messageCreate", async (msg) => {
-  // if self return
-  if(msg.author.id == client.user.id) {
-    return;
+client.on("messageCreate", async (message) => {
+  try {
+    await handleMessage(message, "create");
+  } catch (error) {
+    console.error("[bot] error handling created message", error);
   }
+});
 
-  if (msg.guild.id && msg.guild.id == ithinkihaveserver) {
-    console.log(`[${msg.author.tag}] ${msg.content}`);
-  }
-
-  // check for messages in the 中文 chat and if they contain english delete them
-  if (msg.guild.id && msg.channel.id == 中文 && /[a-zA-Z]/.test(msg.content)) {
-    try {
-      await msg.delete();
+client.on("messageUpdate", async (oldMessage, newMessage) => {
+  try {
+    const message = await hydrateMessage(newMessage);
+    if (!message) {
       return;
-    } catch (error) {
-      console.error("[bot] error deleting message in 中文 chat");
     }
-  }
 
-  if (msg.author.id == client.user.id) {
-    return;
-  }
-
-  if (
-    msg.content.toLowerCase().includes("is this true") ||
-    msg.content.toLowerCase().includes("这是真的吗") ||
-    msg.content.toLowerCase().includes("is this real")
-  ) {
-    const chance = Math.random();
-    if (chance < 0.5) {
-      const randomResponse =
-        trueresponses[Math.floor(Math.random() * trueresponses.length)];
-      msg.channel.send(randomResponse);
-    } else {
-      const randomResponse =
-        falseresponses[Math.floor(Math.random() * falseresponses.length)];
-      msg.channel.send(randomResponse);
+    if (getNormalizedContent(oldMessage) === getNormalizedContent(message)) {
+      return;
     }
-  }
 
-  if (
-    msg.content.toLowerCase().startsWith("i think") ||
-    msg.content.toLowerCase().startsWith("我觉得") ||
-    msg.content.toLowerCase().startsWith("我想")
-  ) {
-    try {
-      (await client.guilds.fetch(ithinkihaveserver)).setName(
-        msg.content.toLowerCase(),
-      );
-      await msg.react("✅");
-    } catch (error) {
-      console.error("[bot] error changing server name");
-      await msg.react("❌");
-    }
+    await handleMessage(message, "update");
+  } catch (error) {
+    console.error("[bot] error handling updated message", error);
   }
-
-  checkForKeywords(msg);
 });
 
 client.login(process.env.TOKEN);
 
-function checkForKeywords(msg) {
+async function handleMessage(message, eventType) {
+  if (shouldIgnoreMessage(message)) {
+    return;
+  }
+
+  logMessage(message, eventType);
+
+  if (await handleChineseChannelEnglishCheck(message)) {
+    return;
+  }
+
+  if (shouldReplyToTruthQuestion(message)) {
+    await replyToTruthQuestion(message);
+  }
+
+  if (shouldRenameServer(message)) {
+    await renameServerFromMessage(message);
+  }
+
+  await checkForKeywords(message);
+}
+
+async function hydrateMessage(message) {
+  if (!message.partial) {
+    return message;
+  }
+
+  try {
+    return await message.fetch();
+  } catch (error) {
+    console.error("[bot] error fetching updated message", error);
+    return null;
+  }
+}
+
+function shouldIgnoreMessage(message) {
+  return !message?.author || message.author.id === client.user.id;
+}
+
+function getNormalizedContent(message) {
+  return (message?.content ?? "").toLowerCase();
+}
+
+function logMessage(message, eventType) {
+  if (message.guild?.id === ITHINKIHAVE_SERVER_ID) {
+    const prefix = eventType === "update" ? "[edited] " : "";
+    console.log(`${prefix}[${message.author.tag}] ${message.content}`);
+  }
+}
+
+function shouldDeleteEnglishInChineseChat(message) {
+  return (
+    message.channel?.id === CHINESE_CHANNEL_ID &&
+    ENGLISH_REGEX.test(message.content ?? "")
+  );
+}
+
+async function handleChineseChannelEnglishCheck(message) {
+  if (!shouldDeleteEnglishInChineseChat(message)) {
+    return false;
+  }
+
+  try {
+    await message.delete();
+    return true;
+  } catch (error) {
+    console.error("[bot] error deleting message in 中文 chat", error);
+    return false;
+  }
+}
+
+function shouldReplyToTruthQuestion(message) {
+  const content = getNormalizedContent(message);
+  return TRUTH_CHECK_PHRASES.some((phrase) => content.includes(phrase));
+}
+
+async function replyToTruthQuestion(message) {
+  const chance = Math.random();
+  const source = chance < 0.5 ? trueresponses : falseresponses;
+  const randomResponse = source[Math.floor(Math.random() * source.length)];
+
+  await message.channel.send(randomResponse);
+}
+
+function shouldRenameServer(message) {
+  // this should rename the server, no matter where the message was sent
+  // as long as the bot is present.
+
+  const content = getNormalizedContent(message);
+  return SERVER_NAME_PREFIXES.some((prefix) => content.startsWith(prefix));
+}
+
+async function renameServerFromMessage(message) {
+  try {
+    const guild = await client.guilds.fetch(ITHINKIHAVE_SERVER_ID);
+    await guild.setName(getNormalizedContent(message));
+    await message.react("✅");
+  } catch (error) {
+    console.error("[bot] error changing server name", error);
+    try {
+      await message.react("❌");
+    } catch (reactionError) {
+      console.error("[bot] error reacting to failed server rename", reactionError);
+    }
+  }
+}
+
+async function checkForKeywords(message) {
+  const content = getNormalizedContent(message);
+
   for (const item of responses) {
-    if (msg.content.toLowerCase().includes(item.key)) {
+    if (content.includes(item.key)) {
       const randomResponse =
         item.responses[Math.floor(Math.random() * item.responses.length)];
-      msg.reply(randomResponse);
+      await message.reply(randomResponse);
     }
   }
 }
