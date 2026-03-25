@@ -169,12 +169,13 @@ async function renameServerFromMessage(message) {
 }
 
 async function checkForKeywords(message) {
+  const content = getNormalizedContent(message);
+
   for (const item of responses) {
-    if (getNormalizedContent(message).includes(item.key)) {
+    if (content.includes(item.key)) {
       const randomResponse =
         item.responses[Math.floor(Math.random() * item.responses.length)];
       await message.reply(randomResponse);
-      return;
     }
   }
 }
