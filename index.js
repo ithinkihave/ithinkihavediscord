@@ -55,7 +55,7 @@ client.on("messageCreate", async (msg) => {
     return;
   }
 
-  if (msg.content.toLowerCase().includes("is this true") || msg.content.toLowerCase().includes("这是真的吗")) {
+  if (msg.content.toLowerCase().includes("is this true") || msg.content.toLowerCase().includes("这是真的吗") || msg.content.toLowerCase().includes("is this real")) {
     const chance = Math.random();
     if (chance < 0.5) {
       const randomResponse =
