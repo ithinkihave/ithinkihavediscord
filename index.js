@@ -14,7 +14,6 @@ const client = new Client({
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessageTyping,
-    GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessageReactions,
   ],
 });
@@ -90,6 +89,10 @@ function shouldIgnoreMessage(message) {
   return !message?.author || message.author.id === client.user.id;
 }
 
+function getNormalizedContent(message) {
+  return (message?.content ?? "").toLowerCase();
+}
+
 // Log messages
 function logMessage(message, eventType) {
   if (message.guild?.id === ITHINKIHAVE_SERVER_ID) {
@@ -97,4 +100,3 @@ function logMessage(message, eventType) {
     console.log(`${prefix}[${message.author.tag}] ${message.content}`);
   }
 }
-
