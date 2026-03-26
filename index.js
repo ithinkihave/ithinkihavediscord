@@ -6,6 +6,7 @@ import { handleServerRename } from "./lib/serverRename.js";
 import { Client, GatewayIntentBits } from "discord.js";
 
 const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
+const CLANKER_ROLE_ID = "1435481760199610511";
 
 const client = new Client({
   intents: [
@@ -84,9 +85,20 @@ async function hydrateMessage(message) {
   }
 }
 
-// Ignore messages from itself
-function shouldIgnoreMessage(message) {
-  return !message?.author || message.author.id === client.user.id;
+// Ignore messages from itself and internal bookkeeping accounts.
+async function shouldIgnoreMessage(message) {
+  if (!message?.author || message.author.id === client.user.id) {
+    return true;
+  }
+
+  if (!message.guild) {
+    return false;
+  }
+
+  const member =
+    message.member ?? (await message.guild.members.fetch(message.author.id).catch(() => null));
+
+  return member?.roles?.cache?.has(CLANKER_ROLE_ID) ?? false;
 }
 
 function getNormalizedContent(message) {
