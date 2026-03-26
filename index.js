@@ -30,7 +30,7 @@ client.on("ready", (client) => {
 client.on("messageCreate", async (message) => {
   try {
     // Check if handling required
-    if (shouldIgnoreMessage(message)) return;
+    if (await shouldIgnoreMessage(message)) return;
 
     // Handle the created message
     await handleMessage(message, "create");
@@ -45,7 +45,7 @@ client.on("messageUpdate", async (oldMessage, newMessage) => {
     const message = await hydrateMessage(newMessage);
     if (!message) return;
     if (getNormalizedContent(oldMessage) === getNormalizedContent(message)) return;
-    if (shouldIgnoreMessage(message)) return;
+    if (await shouldIgnoreMessage(message)) return;
 
     // Handle the updated message
     await handleMessage(message, "update");
