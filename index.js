@@ -1,14 +1,11 @@
-require("dotenv").config();
-const { Client, GatewayIntentBits } = require("discord.js");
+import "dotenv/config.js";
+import { handleKeywords } from "./lib/keywordCheck.js";
+import { handleChineseChannelEnglishCheck } from "./lib/chineseCheck.js";
+import { handleTruthQuestion } from "./lib/truthCheck.js";
+import { handleServerRename } from "./lib/serverRename.js";
+import { Client, GatewayIntentBits } from "discord.js";
 
 const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
-const CHINESE_CHANNEL_ID = "1486174868054474762";
-const ENGLISH_REGEX = /[a-zA-Z]/;
-const TRUTH_CHECK_PHRASES = ["is this true", "这是真的吗", "is this real"];
-const SERVER_NAME_PREFIXES = ["i think", "我觉得", "我想"];
-
-const trueresponses = require("./res/true.json");
-const falseresponses = require("./res/false.json");
 
 const client = new Client({
   intents: [
@@ -22,9 +19,9 @@ const client = new Client({
   ],
 });
 
-const responses = [
-  { key: "guh", responses: ["https://tenor.com/view/guh-gif-25116077"] },
-];
+
+
+// ================== discord.js events ==================
 
 client.on("ready", (client) => {
   console.log(`yuhh ${client.user.tag} is online.`);
@@ -33,6 +30,10 @@ client.on("ready", (client) => {
 
 client.on("messageCreate", async (message) => {
   try {
+    // Check if handling required
+    if (shouldIgnoreMessage(message)) return;
+
+    // Handle the created message
     await handleMessage(message, "create");
   } catch (error) {
     console.error("[bot] error handling created message", error);
@@ -41,15 +42,13 @@ client.on("messageCreate", async (message) => {
 
 client.on("messageUpdate", async (oldMessage, newMessage) => {
   try {
+    // Check if handling required
     const message = await hydrateMessage(newMessage);
-    if (!message) {
-      return;
-    }
+    if (!message) return;
+    if (getNormalizedContent(oldMessage) === getNormalizedContent(message)) return;
+    if (shouldIgnoreMessage(message)) return;
 
-    if (getNormalizedContent(oldMessage) === getNormalizedContent(message)) {
-      return;
-    }
-
+    // Handle the updated message
     await handleMessage(message, "update");
   } catch (error) {
     console.error("[bot] error handling updated message", error);
@@ -58,33 +57,26 @@ client.on("messageUpdate", async (oldMessage, newMessage) => {
 
 client.login(process.env.TOKEN);
 
-async function handleMessage(message, eventType) {
-  if (shouldIgnoreMessage(message)) {
-    return;
-  }
 
+
+// ================== Handlers & Helpers ==================
+
+// Main handler function
+async function handleMessage(message, eventType) {
   logMessage(message, eventType);
 
-  if (await handleChineseChannelEnglishCheck(message)) {
-    return;
-  }
-
-  if (shouldReplyToTruthQuestion(message)) {
-    await replyToTruthQuestion(message);
-  }
-
-  if (shouldRenameServer(message)) {
-    await renameServerFromMessage(message);
-  }
-
-  await checkForKeywords(message);
+  // Functions
+  if (await handleChineseChannelEnglishCheck(message)) return;
+  await handleTruthQuestion(message);
+  await handleServerRename(message);
+  await handleKeywords(message);
 }
 
+// Make sure we have the full msg object
 async function hydrateMessage(message) {
   if (!message.partial) {
     return message;
   }
-
   try {
     return await message.fetch();
   } catch (error) {
@@ -93,14 +85,12 @@ async function hydrateMessage(message) {
   }
 }
 
+// Ignore messages from itself
 function shouldIgnoreMessage(message) {
   return !message?.author || message.author.id === client.user.id;
 }
 
-function getNormalizedContent(message) {
-  return (message?.content ?? "").toLowerCase();
-}
-
+// Log messages
 function logMessage(message, eventType) {
   if (message.guild?.id === ITHINKIHAVE_SERVER_ID) {
     const prefix = eventType === "update" ? "[edited] " : "";
@@ -108,71 +98,3 @@ function logMessage(message, eventType) {
   }
 }
 
-function shouldDeleteEnglishInChineseChat(message) {
-  return (
-    message.channel?.id === CHINESE_CHANNEL_ID &&
-    ENGLISH_REGEX.test(message.content ?? "")
-  );
-}
-
-async function handleChineseChannelEnglishCheck(message) {
-  if (!shouldDeleteEnglishInChineseChat(message)) {
-    return false;
-  }
-
-  try {
-    await message.delete();
-    return true;
-  } catch (error) {
-    console.error("[bot] error deleting message in 中文 chat", error);
-    return false;
-  }
-}
-
-function shouldReplyToTruthQuestion(message) {
-  const content = getNormalizedContent(message);
-  return TRUTH_CHECK_PHRASES.some((phrase) => content.includes(phrase));
-}
-
-async function replyToTruthQuestion(message) {
-  const chance = Math.random();
-  const source = chance < 0.5 ? trueresponses : falseresponses;
-  const randomResponse = source[Math.floor(Math.random() * source.length)];
-
-  await message.channel.send(randomResponse);
-}
-
-function shouldRenameServer(message) {
-  // this should rename the server, no matter where the message was sent
-  // as long as the bot is present.
-
-  const content = getNormalizedContent(message);
-  return SERVER_NAME_PREFIXES.some((prefix) => content.startsWith(prefix));
-}
-
-async function renameServerFromMessage(message) {
-  try {
-    const guild = await client.guilds.fetch(ITHINKIHAVE_SERVER_ID);
-    await guild.setName(getNormalizedContent(message));
-    await message.react("✅");
-  } catch (error) {
-    console.error("[bot] error changing server name", error);
-    try {
-      await message.react("❌");
-    } catch (reactionError) {
-      console.error("[bot] error reacting to failed server rename", reactionError);
-    }
-  }
-}
-
-async function checkForKeywords(message) {
-  const content = getNormalizedContent(message);
-
-  for (const item of responses) {
-    if (content.includes(item.key)) {
-      const randomResponse =
-        item.responses[Math.floor(Math.random() * item.responses.length)];
-      await message.reply(randomResponse);
-    }
-  }
-}
