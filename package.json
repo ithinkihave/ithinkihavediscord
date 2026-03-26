@@ -1,6 +1,7 @@
 {
   "name": "floorgy-discord-bot",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "repository": "https://github.com/InvalidSE/floorgy-discord-bot.git",
   "author": "Taine Reader <taine.reader@gmail.com>",
