@@ -32,8 +32,11 @@ jobs:
           command: c
           cwd: "./"
           files: |
-            backend/
-            frontend/dist/
+            res/
+            lib/
+            index.js
+            package.json
+            package-lock.json
             captain-definition
           outPath: deploy.tar
 
