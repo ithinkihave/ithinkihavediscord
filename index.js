@@ -24,6 +24,7 @@ const client = new Client({
 // ================== discord.js events ==================
 
 client.on("ready", (client) => {
+  console.log(" ================== HELLO CHAT ================== ");
   console.log(`yuhh ${client.user.tag} is online.`);
   console.log(new Date().toLocaleString("en-NZ"));
 });
