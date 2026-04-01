@@ -17,6 +17,7 @@ const client = new Client({
     GatewayIntentBits.GuildMessageTyping,
     GatewayIntentBits.GuildMessageReactions,
   ],
+  allowedMentions: { repliedUser: false },
 });
 
 
