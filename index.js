@@ -8,6 +8,8 @@ import { Client, GatewayIntentBits } from "discord.js";
 const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
 const CLANKER_ROLE_ID = "1435481760199610511";
 
+const ERROR_IMG = "https://cdn.discordapp.com/attachments/1487372867153690664/1487372867350958221/IMG-20260328-WA0017.png";
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -37,7 +39,7 @@ client.on("messageCreate", async (message) => {
     // Handle the created message
     await handleMessage(message, "create");
   } catch (error) {
-    console.error("[bot] error handling created message", error);
+    await reportMessageError(message, "error handling created message", error);
   }
 });
 
@@ -52,7 +54,7 @@ client.on("messageUpdate", async (oldMessage, newMessage) => {
     // Handle the updated message
     await handleMessage(message, "update");
   } catch (error) {
-    console.error("[bot] error handling updated message", error);
+    await reportMessageError(newMessage, "error handling updated message", error);
   }
 });
 
@@ -67,10 +69,19 @@ async function handleMessage(message, eventType) {
   logMessage(message, eventType);
 
   // Functions
-  if (await handleChineseChannelEnglishCheck(message)) return;
-  await handleTruthQuestion(message);
-  await handleServerRename(message);
-  await handleKeywords(message);
+  if (
+    await runMessageHandler(
+      message,
+      "error deleting message in 中文 chat",
+      handleChineseChannelEnglishCheck,
+    )
+  ) {
+    return;
+  }
+
+  await runMessageHandler(message, "error replying to truth question", handleTruthQuestion);
+  await runMessageHandler(message, "error changing server name", handleServerRename);
+  await runMessageHandler(message, "error handling keywords", handleKeywords);
 }
 
 // Make sure we have the full msg object
@@ -78,12 +89,8 @@ async function hydrateMessage(message) {
   if (!message.partial) {
     return message;
   }
-  try {
-    return await message.fetch();
-  } catch (error) {
-    console.error("[bot] error fetching updated message", error);
-    return null;
-  }
+
+  return await message.fetch();
 }
 
 // Ignore messages from itself and internal bookkeeping accounts.
@@ -104,6 +111,29 @@ async function shouldIgnoreMessage(message) {
 
 function getNormalizedContent(message) {
   return (message?.content ?? "").toLowerCase();
+}
+
+async function runMessageHandler(message, context, handler) {
+  try {
+    return await handler(message);
+  } catch (error) {
+    await reportMessageError(message, context, error);
+    return false;
+  }
+}
+
+async function reportMessageError(message, context, error) {
+  console.error(`[bot] ${context}`, error);
+
+  if (typeof message?.channel?.send !== "function") {
+    return;
+  }
+
+  try {
+    await message.channel.send(ERROR_IMG);
+  } catch (sendError) {
+    console.error(`[bot] failed sending error image for ${context}`, sendError);
+  }
 }
 
 // Log messages
