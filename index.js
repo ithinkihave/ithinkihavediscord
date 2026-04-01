@@ -39,7 +39,7 @@ client.on("messageCreate", async (message) => {
     // Handle the created message
     await handleMessage(message, "create");
   } catch (error) {
-    await reportMessageError(message, "error handling created message", error);
+    console.error("[bot] error handling created message", error);
   }
 });
 
@@ -54,7 +54,7 @@ client.on("messageUpdate", async (oldMessage, newMessage) => {
     // Handle the updated message
     await handleMessage(message, "update");
   } catch (error) {
-    await reportMessageError(newMessage, "error handling updated message", error);
+    console.error("[bot] error handling updated message", error);
   }
 });
 
@@ -90,7 +90,12 @@ async function hydrateMessage(message) {
     return message;
   }
 
-  return await message.fetch();
+  try {
+    return await message.fetch();
+  } catch (error) {
+    console.error("[bot] error fetching updated message", error);
+    return null;
+  }
 }
 
 // Ignore messages from itself and internal bookkeeping accounts.
