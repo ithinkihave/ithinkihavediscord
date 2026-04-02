@@ -78,10 +78,10 @@ async function handleMessage(message, eventType) {
   ) {
     return;
   }
-
-  await runMessageHandler(message, "error replying to truth question", handleTruthQuestion);
-  await runMessageHandler(message, "error changing server name", handleServerRename);
-  await runMessageHandler(message, "error handling keywords", handleKeywords);
+  // if an error occurs, others shouldn't occur; only one image
+  if (!(await runMessageHandler(message, "error replying to truth question", handleTruthQuestion))) return;
+  if (!(await runMessageHandler(message, "error changing server name", handleServerRename))) return;
+  if (!(await runMessageHandler(message, "error handling keywords", handleKeywords))) return;
 }
 
 // Make sure we have the full msg object
