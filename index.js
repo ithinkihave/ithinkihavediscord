@@ -69,19 +69,20 @@ async function handleMessage(message, eventType) {
   logMessage(message, eventType);
 
   // Functions
-  if (
-    await runMessageHandler(
-      message,
-      "error deleting message in 中文 chat",
-      handleChineseChannelEnglishCheck,
-    )
-  ) {
+  const chineseChannelCheck = await runMessageHandler(
+    message,
+    "error deleting message in 中文 chat",
+    handleChineseChannelEnglishCheck,
+  );
+
+  if (!chineseChannelCheck.ok || chineseChannelCheck.result) {
     return;
   }
+
   // if an error occurs, others shouldn't occur; only one image
-  if (!(await runMessageHandler(message, "error replying to truth question", handleTruthQuestion))) return;
-  if (!(await runMessageHandler(message, "error changing server name", handleServerRename))) return;
-  if (!(await runMessageHandler(message, "error handling keywords", handleKeywords))) return;
+  if (!(await runMessageHandler(message, "error replying to truth question", handleTruthQuestion)).ok) return;
+  if (!(await runMessageHandler(message, "error changing server name", handleServerRename)).ok) return;
+  if (!(await runMessageHandler(message, "error handling keywords", handleKeywords)).ok) return;
 }
 
 // Make sure we have the full msg object
@@ -120,10 +121,16 @@ function getNormalizedContent(message) {
 
 async function runMessageHandler(message, context, handler) {
   try {
-    return await handler(message);
+    return {
+      ok: true,
+      result: await handler(message),
+    };
   } catch (error) {
     await reportMessageError(message, context, error);
-    return false;
+    return {
+      ok: false,
+      result: null,
+    };
   }
 }
 
