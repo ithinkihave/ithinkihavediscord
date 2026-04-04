@@ -29,6 +29,7 @@ jobs:
           command: c
           cwd: "./"
           files: |
+            img/
             res/
             lib/
             index.js

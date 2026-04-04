@@ -3,6 +3,8 @@ import { handleKeywords } from "./lib/keywordCheck.js";
 import { handleChineseChannelEnglishCheck } from "./lib/chineseCheck.js";
 import { handleTruthQuestion } from "./lib/truthCheck.js";
 import { handleServerRename } from "./lib/serverRename.js";
+import { gpaCommandData, handleGpaCommand } from "./lib/gpaCheck.js";
+import { glupCommandData, handleGlupCommand } from "./lib/glupCheck.js";
 import { ensureHappy } from "./lib/sentimentAnalysis.js";
 import { Client, GatewayIntentBits } from "discord.js";
 
@@ -31,6 +33,10 @@ client.on("ready", (client) => {
   console.log(" ================== HELLO CHAT ================== ");
   console.log(`yuhh ${client.user.tag} is online.`);
   console.log(new Date().toLocaleString("en-NZ"));
+
+  registerSlashCommands(client).catch((error) => {
+    console.error("[bot] failed registering slash commands", error);
+  });
 });
 
 client.on("messageCreate", async (message) => {
@@ -60,6 +66,33 @@ client.on("messageUpdate", async (oldMessage, newMessage) => {
   }
 });
 
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isChatInputCommand()) {
+    return;
+  }
+
+  try {
+    if (interaction.commandName === "gpa") {
+      await handleGpaCommand(interaction);
+      return;
+    }
+
+    if (interaction.commandName === "glup") {
+      await handleGlupCommand(interaction);
+    }
+  } catch (error) {
+    console.error(`[bot] error handling /${interaction.commandName}`, error);
+
+    const message = "Something went wrong while rendering that image.";
+    if (interaction.deferred || interaction.replied) {
+      await interaction.editReply({ content: message, attachments: [] }).catch(() => null);
+      return;
+    }
+
+    await interaction.reply({ content: message, ephemeral: true }).catch(() => null);
+  }
+});
+
 client.login(process.env.TOKEN);
 
 
@@ -86,6 +119,14 @@ async function handleMessage(message, eventType) {
   if (!(await runMessageHandler(message, "error changing server name", handleServerRename)).ok) return;
   if (!(await runMessageHandler(message, "error handling keywords", handleKeywords)).ok) return;
   if (!(await runMessageHandler(message, "error ensuring happy sentiment", ensureHappy)).ok) return;
+}
+
+async function registerSlashCommands(client) {
+  const guildId = process.env.COMMAND_GUILD_ID ?? ITHINKIHAVE_SERVER_ID;
+  const guild = await client.guilds.fetch(guildId);
+
+  await guild.commands.set([gpaCommandData, glupCommandData]);
+  console.log(`[bot] registered slash commands in ${guild.name}`);
 }
 
 // Make sure we have the full msg object
