@@ -120,7 +120,7 @@ async function handleMessage(message, eventType) {
   if (!(await runMessageHandler(message, "error changing server name", handleServerRename)).ok) return;
   if (!(await runMessageHandler(message, "error handling keywords", handleKeywords)).ok) return;
   if (!(await runMessageHandler(message, "error ensuring happy sentiment", ensureHappy)).ok) return;
-  if (!(await runMessageHandler(message, "error ensuring happy sentiment", handlePossibleChessMessage)).ok) return;
+  if (!(await runMessageHandler(message, "error considering a chess message", handlePossibleChessMessage)).ok) return;
 }
 
 async function registerSlashCommands(client) {
