@@ -11,13 +11,13 @@ describe("Austin", () => {
     assert(shouldRenameServer("我觉得我有 austin"));
   });
   it("Shouldn't rename if austin is mentioned", () => {
-    assert(!shouldRenameServer("austin is therefore i am"));
+    assert.strictEqual(shouldRenameServer("austin is therefore i am"), false);
   });
 });
 
 describe("Normal renaming", () => {
   it("Shouldn't be too quick to rename", () => {
-    assert(!shouldRenameServer("i think i don't have a valid message"));
+    assert.strictEqual(shouldRenameServer("i think i don't have a valid message"), false);
   });
   it("Should rename if i think i have a new idea", () => {
     assert(shouldRenameServer("i think i have a new server name idea"));
