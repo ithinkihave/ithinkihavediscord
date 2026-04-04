@@ -208,8 +208,8 @@ async function registerSlashCommands(client) {
         .addStringOption((option) =>
           option
             .setName("subreddit")
-            .setDescription("The subreddit to fetch from (without r/ prefix)")
-            .setRequired(true)
+            .setDescription("The subreddit to fetch from (default: universityofauckland)")
+            .setRequired(false)
         ),
     ];
 

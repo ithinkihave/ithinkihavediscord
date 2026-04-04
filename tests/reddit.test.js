@@ -14,6 +14,7 @@ describe("redditFetcher", () => {
       assert(post.subreddit === "todayilearned", "post.subreddit should match requested subreddit");
       assert(typeof post.over_18 === "boolean", "post should have over_18 flag");
       assert(typeof post.created_utc === "number", "post should have created_utc timestamp");
+      assert(typeof post.selftext === "string", "post should have selftext field (even if empty)");
     });
 
     it("should throw error if subreddit name is missing", async () => {
