@@ -4,7 +4,8 @@ import { handleChineseChannelEnglishCheck } from "./lib/chineseCheck.js";
 import { handleTruthQuestion } from "./lib/truthCheck.js";
 import { handleServerRename } from "./lib/serverRename.js";
 import { ensureHappy } from "./lib/sentimentAnalysis.js";
-import { Client, GatewayIntentBits } from "discord.js";
+import { handleRedditCommand } from "./lib/redditHandler.js";
+import { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, EmbedBuilder } from "discord.js";
 
 const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
 const CLANKER_ROLE_ID = "1435481760199610511";
@@ -27,10 +28,13 @@ const client = new Client({
 
 // ================== discord.js events ==================
 
-client.on("ready", (client) => {
+client.on("ready", async (client) => {
   console.log(" ================== HELLO CHAT ================== ");
   console.log(`yuhh ${client.user.tag} is online.`);
   console.log(new Date().toLocaleString("en-NZ"));
+
+  // Register slash commands
+  await registerSlashCommands(client);
 });
 
 client.on("messageCreate", async (message) => {
@@ -57,6 +61,41 @@ client.on("messageUpdate", async (oldMessage, newMessage) => {
     await handleMessage(message, "update");
   } catch (error) {
     console.error("[bot] error handling updated message", error);
+  }
+});
+
+client.on("interactionCreate", async (interaction) => {
+  try {
+    if (!interaction.isChatInputCommand()) return;
+
+    if (interaction.commandName === "r") {
+      await handleRedditCommand(interaction);
+    }
+  } catch (error) {
+    console.error("[bot] error handling interaction", error);
+    try {
+      if (interaction.deferred) {
+        await interaction.editReply({
+          embeds: [
+            new EmbedBuilder()
+              .setColor("#FF0000")
+              .setTitle("Error")
+              .setDescription("An unexpected error occurred. Check console for details."),
+          ],
+        });
+      } else {
+        await interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setColor("#FF0000")
+              .setTitle("Error")
+              .setDescription("An unexpected error occurred. Check console for details."),
+          ],
+        });
+      }
+    } catch (replyError) {
+      console.error("[bot] error replying to interaction error", replyError);
+    }
   }
 });
 
@@ -156,5 +195,33 @@ function logMessage(message, eventType) {
   if (message.guild?.id === ITHINKIHAVE_SERVER_ID) {
     const prefix = eventType === "update" ? "[edited] " : "";
     console.log(`${prefix}[${message.author.tag}] ${message.content}`);
+  }
+}
+
+// Register slash commands
+async function registerSlashCommands(client) {
+  try {
+    const commands = [
+      new SlashCommandBuilder()
+        .setName("r")
+        .setDescription("Get a random post from a Reddit subreddit")
+        .addStringOption((option) =>
+          option
+            .setName("subreddit")
+            .setDescription("The subreddit to fetch from (without r/ prefix)")
+            .setRequired(true)
+        ),
+    ];
+
+    const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
+
+    console.log("[bot] Registering slash commands...");
+    await rest.put(Routes.applicationCommands(client.user.id), {
+      body: commands.map((cmd) => cmd.toJSON()),
+    });
+
+    console.log("[bot] Slash commands registered successfully");
+  } catch (error) {
+    console.error("[bot] error registering slash commands", error);
   }
 }
