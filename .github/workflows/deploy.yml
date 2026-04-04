@@ -4,16 +4,13 @@ on:
   push:
     branches: [ "main" ]
 
-  pull_request:
-    branches: [ "main" ]
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [22.x]
 
     steps:
       - name: Check out repository
@@ -38,6 +35,7 @@ jobs:
             package.json
             package-lock.json
             captain-definition
+            yarn.lock
           outPath: deploy.tar
 
       - name: Deploy App to CapRover
