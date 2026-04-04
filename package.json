@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node --test"
+  },
   "repository": "https://github.com/InvalidSE/floorgy-discord-bot.git",
   "author": "Taine Reader <taine.reader@gmail.com>",
   "license": "MIT",
@@ -15,6 +19,7 @@
     "node-fetch": "^3.3.2",
     "node-schedule": "^2.1.1",
     "request": "^2.88.2",
+    "sharp": "^0.34.5",
     "spotify-web-api-node": "^5.0.2"
   }
 }
