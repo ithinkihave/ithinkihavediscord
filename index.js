@@ -5,6 +5,7 @@ import { handleTruthQuestion } from "./lib/truthCheck.js";
 import { handleServerRename } from "./lib/serverRename.js";
 import { ensureHappy } from "./lib/sentimentAnalysis.js";
 import { Client, GatewayIntentBits } from "discord.js";
+import { handlePossibleChessMessage } from "./lib/botChess.js";
 
 const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
 const CLANKER_ROLE_ID = "1435481760199610511";
@@ -86,6 +87,7 @@ async function handleMessage(message, eventType) {
   if (!(await runMessageHandler(message, "error changing server name", handleServerRename)).ok) return;
   if (!(await runMessageHandler(message, "error handling keywords", handleKeywords)).ok) return;
   if (!(await runMessageHandler(message, "error ensuring happy sentiment", ensureHappy)).ok) return;
+  if (!(await runMessageHandler(message, "error ensuring happy sentiment", handlePossibleChessMessage)).ok) return;
 }
 
 // Make sure we have the full msg object
