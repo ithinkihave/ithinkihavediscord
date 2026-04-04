@@ -3,6 +3,7 @@ import { handleKeywords } from "./lib/keywordCheck.js";
 import { handleChineseChannelEnglishCheck } from "./lib/chineseCheck.js";
 import { handleTruthQuestion } from "./lib/truthCheck.js";
 import { handleServerRename } from "./lib/serverRename.js";
+import { ensureHappy } from "./lib/sentimentAnalysis.js";
 import { Client, GatewayIntentBits } from "discord.js";
 
 const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
@@ -84,6 +85,7 @@ async function handleMessage(message, eventType) {
   if (!(await runMessageHandler(message, "error replying to truth question", handleTruthQuestion)).ok) return;
   if (!(await runMessageHandler(message, "error changing server name", handleServerRename)).ok) return;
   if (!(await runMessageHandler(message, "error handling keywords", handleKeywords)).ok) return;
+  if (!(await runMessageHandler(message, "error ensuring happy sentiment", ensureHappy)).ok) return;
 }
 
 // Make sure we have the full msg object
