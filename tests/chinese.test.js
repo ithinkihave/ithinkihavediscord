@@ -1,4 +1,4 @@
-import { assert } from "node:console";
+import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { shouldDeleteDisallowedChineseChannelMessage } from "../lib/chineseCheck.js";
 
