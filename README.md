@@ -80,7 +80,7 @@ In the configured "happy" channel, messages are scored with `natural` sentiment 
 
 ## Tech stack
 
-- Node.js
+- Node.js `v22+`
 - discord.js
 - sharp
 - natural
