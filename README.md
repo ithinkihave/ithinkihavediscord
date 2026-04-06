@@ -76,7 +76,7 @@ In the configured Chinese channel, the bot deletes messages that:
 In the configured "happy" channel, messages are scored with `natural` sentiment analysis:
 
 - positive-enough messages get a reaction
-- negative messages are deleted
+- messages with sentiment scores below the configured threshold are deleted
 
 ## Tech stack
 
