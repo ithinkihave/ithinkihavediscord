@@ -1,5 +1,5 @@
 {
-  "name": "floorgy-discord-bot",
+  "name": "ithinkihave",
   "version": "1.0.0",
   "type": "module",
   "main": "index.js",
@@ -7,7 +7,7 @@
     "start": "node index.js",
     "test": "node --test"
   },
-  "repository": "https://github.com/InvalidSE/floorgy-discord-bot.git",
+  "repository": "https://github.com/InvalidSE/ithinkihave.git",
   "author": "Taine Reader <taine.reader@gmail.com>",
   "license": "MIT",
   "dependencies": {
