@@ -104,6 +104,13 @@ client.login(process.env.TOKEN);
 async function handleMessage(message, eventType) {
   logMessage(message, eventType);
 
+  // handle messages in the order
+  // 1. Deletion
+  // 2. Reaction
+  // 3. Replies
+  // This is done so that if a message is to be deleted, it doesn't trigger other events
+  // when it shouldn't, unneccesarily cluttering a channel.
+
   // Functions
   const chineseChannelCheck = await runMessageHandler(
     message,
@@ -116,11 +123,11 @@ async function handleMessage(message, eventType) {
   }
 
   // if an error occurs, others shouldn't occur; only one image
-  if (!(await runMessageHandler(message, "error replying to truth question", handleTruthQuestion)).ok) return;
+  if (!(await runMessageHandler(message, "error ensuring happy sentiment", ensureHappy)).ok) return;
+  if (!(await runMessageHandler(message, "error considering a chess message", handlePossibleChessMessage)).ok) return;
   if (!(await runMessageHandler(message, "error changing server name", handleServerRename)).ok) return;
   if (!(await runMessageHandler(message, "error handling keywords", handleKeywords)).ok) return;
-  if (!(await runMessageHandler(message, "error considering a chess message", handlePossibleChessMessage)).ok) return;
-  if (!(await runMessageHandler(message, "error ensuring happy sentiment", ensureHappy)).ok) return;
+  if (!(await runMessageHandler(message, "error replying to truth question", handleTruthQuestion)).ok) return;
 }
 
 async function registerSlashCommands(client) {
