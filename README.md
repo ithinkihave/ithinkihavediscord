@@ -85,26 +85,6 @@ In the configured "happy" channel, messages are scored with `natural` sentiment 
 - sharp
 - natural
 
-## Project structure
-
-```text
-.
-├── index.js
-├── lib/
-│   ├── botChess.js
-│   ├── chineseCheck.js
-│   ├── gpaCheck.js
-│   ├── glupCheck.js
-│   ├── imageText.js
-│   ├── keywordCheck.js
-│   ├── sentimentAnalysis.js
-│   ├── serverRename.js
-│   └── truthCheck.js
-├── img/
-├── res/
-└── tests/
-```
-
 ## Setup
 
 ### 1. Install dependencies
