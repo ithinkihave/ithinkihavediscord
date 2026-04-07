@@ -122,6 +122,16 @@ async function handleMessage(message, eventType) {
     return;
   }
 
+  const happyCheck = await runMessageHandler(
+    message,
+    "error ensuring happy sentiment",
+    ensureHappy,
+  );
+
+  if (!happyCheck.ok || happyCheck.result) {
+    return;
+  }
+
   // if an error occurs, others shouldn't occur; only one image
   if (!(await runMessageHandler(message, "error ensuring happy sentiment", ensureHappy)).ok) return;
   if (!(await runMessageHandler(message, "error considering a chess message", handlePossibleChessMessage)).ok) return;
