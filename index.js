@@ -8,6 +8,7 @@ import { glupCommandData, handleGlupCommand } from "./lib/glupCheck.js";
 import { ensureHappy } from "./lib/sentimentAnalysis.js";
 import { Client, GatewayIntentBits } from "discord.js";
 import { handlePossibleChessMessage } from "./lib/botChess.js";
+import { runMessageHandlersInOrder } from "./lib/messagePipeline.js";
 
 const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
 const CLANKER_ROLE_ID = "1435481760199610511";
@@ -111,33 +112,42 @@ async function handleMessage(message, eventType) {
   // This is done so that if a message is to be deleted, it doesn't trigger other events
   // when it shouldn't, unneccesarily cluttering a channel.
 
-  // Functions
-  const chineseChannelCheck = await runMessageHandler(
+  const handlerCheck = await runMessageHandlersInOrder(
     message,
-    "error deleting message in 中文 chat",
-    handleChineseChannelEnglishCheck,
+    [
+      {
+        context: "error deleting message in 中文 chat",
+        handler: handleChineseChannelEnglishCheck,
+        stopOnResult: true,
+      },
+      {
+        context: "error ensuring happy sentiment",
+        handler: ensureHappy,
+        stopOnResult: true,
+      },
+      {
+        context: "error considering a chess message",
+        handler: handlePossibleChessMessage,
+      },
+      {
+        context: "error changing server name",
+        handler: handleServerRename,
+      },
+      {
+        context: "error handling keywords",
+        handler: handleKeywords,
+      },
+      {
+        context: "error replying to truth question",
+        handler: handleTruthQuestion,
+      },
+    ],
+    runMessageHandler,
   );
 
-  if (!chineseChannelCheck.ok || chineseChannelCheck.result) {
+  if (!handlerCheck.ok || handlerCheck.result) {
     return;
   }
-
-  const happyCheck = await runMessageHandler(
-    message,
-    "error ensuring happy sentiment",
-    ensureHappy,
-  );
-
-  if (!happyCheck.ok || happyCheck.result) {
-    return;
-  }
-
-  // if an error occurs, others shouldn't occur; only one image
-  if (!(await runMessageHandler(message, "error ensuring happy sentiment", ensureHappy)).ok) return;
-  if (!(await runMessageHandler(message, "error considering a chess message", handlePossibleChessMessage)).ok) return;
-  if (!(await runMessageHandler(message, "error changing server name", handleServerRename)).ok) return;
-  if (!(await runMessageHandler(message, "error handling keywords", handleKeywords)).ok) return;
-  if (!(await runMessageHandler(message, "error replying to truth question", handleTruthQuestion)).ok) return;
 }
 
 async function registerSlashCommands(client) {
