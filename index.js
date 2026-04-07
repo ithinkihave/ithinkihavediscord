@@ -110,7 +110,7 @@ async function handleMessage(message, eventType) {
   // 2. Reaction
   // 3. Replies
   // This is done so that if a message is to be deleted, it doesn't trigger other events
-  // when it shouldn't, unneccesarily cluttering a channel.
+  // when it shouldn't, unnecessarily cluttering a channel.
 
   const handlerCheck = await runMessageHandlersInOrder(
     message,
