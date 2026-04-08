@@ -68,4 +68,44 @@ describe("runMessageHandlersInOrder", () => {
     assert.deepEqual(calls, ["react first", "reply second"]);
     assert.deepEqual(handlerCheck, { ok: true, result: null });
   });
+
+  it("stops when a handler reports an error", async () => {
+    const message = { content: "hello" };
+    const calls = [];
+
+    async function runMessageHandler(_message, context, handler) {
+      calls.push(context);
+
+      if (context === "broken handler") {
+        return {
+          ok: false,
+          result: null,
+        };
+      }
+
+      return {
+        ok: true,
+        result: await handler(),
+      };
+    }
+
+    const handlerCheck = await runMessageHandlersInOrder(
+      message,
+      [
+        {
+          context: "broken handler",
+          handler: async () => false,
+        },
+        {
+          context: "should never run",
+          handler: async () => true,
+          stopOnResult: true,
+        },
+      ],
+      runMessageHandler,
+    );
+
+    assert.deepEqual(calls, ["broken handler"]);
+    assert.deepEqual(handlerCheck, { ok: false, result: null });
+  });
 });

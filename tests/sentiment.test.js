@@ -31,10 +31,11 @@ describe("ensureHappy", () => {
       },
     };
 
-    await ensureHappy(message);
+    const didDelete = await ensureHappy(message);
 
     assert.equal(deleted, true);
     assert.equal(reactedWith, null);
+    assert.equal(didDelete, true);
   });
 
   it("reacts with snare emoji for positive messages in the happy channel", async () => {
@@ -52,10 +53,11 @@ describe("ensureHappy", () => {
       },
     };
 
-    await ensureHappy(message);
+    const didDelete = await ensureHappy(message);
 
     assert.equal(deleted, false);
     assert.equal(reactedWith, "1489800033359364259");
+    assert.equal(didDelete, false);
   });
 
   it("ignores messages outside the happy channel", async () => {
@@ -73,9 +75,10 @@ describe("ensureHappy", () => {
       },
     };
 
-    await ensureHappy(message);
+    const didDelete = await ensureHappy(message);
 
     assert.equal(deleted, false);
     assert.equal(reactedWith, null);
+    assert.equal(didDelete, false);
   });
 });

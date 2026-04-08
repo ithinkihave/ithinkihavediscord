@@ -105,12 +105,9 @@ client.login(process.env.TOKEN);
 async function handleMessage(message, eventType) {
   logMessage(message, eventType);
 
-  // handle messages in the order
-  // 1. Deletion
-  // 2. Reaction
-  // 3. Replies
-  // This is done so that if a message is to be deleted, it doesn't trigger other events
-  // when it shouldn't, unnecessarily cluttering a channel.
+  // Handle delete-capable checks first so a deleted message does not trigger
+  // later replies or reactions. Reply handlers run before the random chess
+  // reaction so a transient reaction failure does not suppress replies.
 
   const handlerCheck = await runMessageHandlersInOrder(
     message,
@@ -126,10 +123,6 @@ async function handleMessage(message, eventType) {
         stopOnResult: true,
       },
       {
-        context: "error considering a chess message",
-        handler: handlePossibleChessMessage,
-      },
-      {
         context: "error changing server name",
         handler: handleServerRename,
       },
@@ -140,6 +133,10 @@ async function handleMessage(message, eventType) {
       {
         context: "error replying to truth question",
         handler: handleTruthQuestion,
+      },
+      {
+        context: "error considering a chess message",
+        handler: handlePossibleChessMessage,
       },
     ],
     runMessageHandler,
