@@ -174,7 +174,7 @@ async function hydrateMessage<InGuild extends boolean = boolean>(message: AnyPar
 
 // Ignore messages from itself and internal bookkeeping accounts.
 async function shouldIgnoreMessage(message: AnyPartialMessage): Promise<boolean> {
-  if (!message?.author || message.author.id === client.user.id) {
+  if (!message?.author || message.author.id === client.user?.id) {
     return true;
   }
 
@@ -230,6 +230,6 @@ async function reportMessageError(message: AnyPartialMessage, context: string, e
 function logMessage<Event extends keyof ClientEvents>(message: AnyPartialMessage, eventType: Event) {
   if (message.guild?.id === ITHINKIHAVE_SERVER_ID) {
     const prefix = eventType === "messageUpdate" ? "[edited] " : "";
-    console.log(`${prefix}[${message.author.tag}] ${message.content}`);
+    console.log(`${prefix}[${message.author?.tag}] ${message.content}`);
   }
 }
