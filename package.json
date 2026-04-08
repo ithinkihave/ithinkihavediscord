@@ -4,8 +4,9 @@
   "type": "module",
   "main": "index.ts",
   "scripts": {
-    "start": "node index.ts",
-    "test": "node --test"
+    "start": "tsx index.ts",
+    "test": "node --import tsx/esm --test 'tests/*.test.ts'",
+    "typecheck": "tsc --noEmit"
   },
   "repository": "https://github.com/InvalidSE/ithinkihave.git",
   "author": "Taine Reader <taine.reader@gmail.com>",
@@ -20,7 +21,8 @@
     "node-schedule": "^2.1.1",
     "request": "^2.88.2",
     "sharp": "^0.34.5",
-    "spotify-web-api-node": "^5.0.2"
+    "spotify-web-api-node": "^5.0.2",
+    "tsx": "^4.21.0"
   },
   "devDependencies": {
     "typescript": "^6.0.2"
