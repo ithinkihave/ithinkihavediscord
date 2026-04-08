@@ -1,6 +1,7 @@
 import trueresponses from "../res/true.json" with { type: "json" };
 import falseresponses from "../res/false.json" with { type: "json" };
 import { AnyPartialMessage } from "..";
+import { Snowflake } from "discord.js";
 
 const TRUTH_CHECK_PATTERNS = [
   /\bis (this|that|it) (?:(?:actually|really) )?true\b/,
@@ -32,15 +33,16 @@ async function replyToReferencedMessage(message: AnyPartialMessage, response: st
 }
 
 function isOutsideTruthCheckChannel(message: AnyPartialMessage): boolean {
-  if (!TRUTH_CHECK_RESTRICTED_GUILD_IDS.has(message.guild?.id)) {
+  if (!message.guild || !TRUTH_CHECK_RESTRICTED_GUILD_IDS.has(message.guild?.id)) {
     return false;
   }
 
-  if (message.channel?.name === TRUTH_CHECK_CHANNEL_NAME) {
+  // We can't get proper type safety here without runtime checks :/
+  if ((message.channel as {name?: string})?.name === TRUTH_CHECK_CHANNEL_NAME) {
     return false;
   }
 
-  return message.channel?.parent?.name !== TRUTH_CHECK_CHANNEL_NAME;
+  return (message.channel as {parent?: {name?: string}})?.parent?.name !== TRUTH_CHECK_CHANNEL_NAME;
 }
 
 export async function handleTruthQuestion(message: AnyPartialMessage): Promise<void> {
