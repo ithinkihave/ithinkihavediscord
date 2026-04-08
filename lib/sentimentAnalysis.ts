@@ -1,10 +1,11 @@
 import natural from "natural";
+import { AnyPartialMessage } from "..";
 const tokenizer = new natural.WordTokenizer();
 const SentimentAnalyzer = natural.SentimentAnalyzer;
 const stemmer = natural.PorterStemmer;
 const analyzer = new SentimentAnalyzer("English", stemmer, "afinn");
 
-export function analyzeSentiment(text) {
+export function analyzeSentiment(text: string): number {
   const tokens = tokenizer.tokenize(text);
   const sentimentScore = analyzer.getSentiment(tokens);
   return sentimentScore;
@@ -20,11 +21,11 @@ export function analyzeSentiment(text) {
 const happyChannelId = "1489797249734148188";
 const sentimentThreshold = 0.2;
 
-function shouldEnsureHappy(message) {
+function shouldEnsureHappy(message: AnyPartialMessage): boolean {
   return message.channel?.id === happyChannelId;
 }
 
-export async function ensureHappy(message) {
+export async function ensureHappy(message: AnyPartialMessage): Promise<boolean> {
   if (!shouldEnsureHappy(message)) {
     return false;
   }
