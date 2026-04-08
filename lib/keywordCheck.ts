@@ -1,4 +1,4 @@
-import type { AnyPartialMessage } from "..";
+import type { AnyPartialMessage } from "./messageTypes.ts";
 
 type Responses = {
   key: string,

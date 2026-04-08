@@ -1,6 +1,6 @@
 import trueresponses from "../res/true.json" with { type: "json" };
 import falseresponses from "../res/false.json" with { type: "json" };
-import type { AnyPartialMessage } from "..";
+import type { AnyPartialMessage } from "./messageTypes.ts";
 
 const TRUTH_CHECK_PATTERNS = [
   /\bis (this|that|it) (?:(?:actually|really) )?true\b/,

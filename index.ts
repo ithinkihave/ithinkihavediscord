@@ -6,12 +6,10 @@ import { handleServerRename } from "./lib/serverRename.ts";
 import { gpaCommandData, handleGpaCommand } from "./lib/gpaCheck.ts";
 import { glupCommandData, handleGlupCommand } from "./lib/glupCheck.ts";
 import { ensureHappy } from "./lib/sentimentAnalysis.ts";
-import { Client, type ClientEvents, GatewayIntentBits, type Message, type OmitPartialGroupDMChannel, type PartialMessage } from "discord.js";
+import { Client, type ClientEvents, GatewayIntentBits } from "discord.js";
 import { handlePossibleChessMessage } from "./lib/botChess.ts";
 import { type HandlerResult, type MessageHandler, type MessageHandlerReturnTypes, runMessageHandlersInOrder } from "./lib/messagePipeline.ts";
-
-export type AnyPartialMessage<InGuild extends boolean = boolean> = OmitPartialGroupDMChannel<Message<InGuild> | PartialMessage<InGuild>>;
-export type AnyFullMessage<InGuild extends boolean = boolean> = OmitPartialGroupDMChannel<Message<InGuild>>;
+import type { AnyFullMessage, AnyPartialMessage } from "./lib/messageTypes.ts";
 
 const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
 const CLANKER_ROLE_ID = "1435481760199610511";
@@ -158,9 +156,15 @@ async function registerSlashCommands<Ready extends boolean = boolean>(client: Cl
   console.log(`[bot] registered slash commands in ${guild.name}`);
 }
 
+function isFullMessage<InGuild extends boolean = boolean>(
+  message: AnyPartialMessage<InGuild>
+): message is AnyFullMessage<InGuild> {
+  return !message.partial;
+}
+
 // Make sure we have the full msg object
 async function hydrateMessage<InGuild extends boolean = boolean>(message: AnyPartialMessage<InGuild>): Promise<AnyFullMessage<InGuild> | null> {
-  if (!message.partial) {
+  if (isFullMessage(message)) {
     return message;
   }
 

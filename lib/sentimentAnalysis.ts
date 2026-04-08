@@ -1,5 +1,5 @@
 import natural from "natural";
-import type { AnyPartialMessage } from "..";
+import type { AnyPartialMessage } from "./messageTypes.ts";
 const tokenizer = new natural.WordTokenizer();
 const SentimentAnalyzer = natural.SentimentAnalyzer;
 const stemmer = natural.PorterStemmer;

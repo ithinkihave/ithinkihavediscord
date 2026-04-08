@@ -1,4 +1,4 @@
-import type { AnyPartialMessage } from "..";
+import type { AnyPartialMessage } from "./messageTypes.ts";
 
 const CHINESE_CHANNEL_ID = "1486174868054474762";
 const ALLOWED_CHINESE_CHANNEL_CHAR_REGEX =

@@ -1,4 +1,4 @@
-import type { AnyPartialMessage } from "..";
+import type { AnyPartialMessage } from "./messageTypes.ts";
 
 const REACT_PROBABILITY = 1 / 100;
 const REACTIONS = [

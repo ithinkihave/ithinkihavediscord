@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { analyzeSentiment, ensureHappy } from "../lib/sentimentAnalysis.ts";
+import type { AnyPartialMessage } from "../lib/messageTypes.ts";
 
 describe("analyzeSentiment", () => {
   it("returns a higher score for positive text than negative text", () => {
@@ -29,7 +30,7 @@ describe("ensureHappy", () => {
       async react(emoji) {
         reactedWith = emoji;
       },
-    };
+    } as unknown as AnyPartialMessage;
 
     const didDelete = await ensureHappy(message);
 
@@ -51,7 +52,7 @@ describe("ensureHappy", () => {
       async react(emoji) {
         reactedWith = emoji;
       },
-    };
+    } as unknown as AnyPartialMessage;
 
     const didDelete = await ensureHappy(message);
 
@@ -73,7 +74,7 @@ describe("ensureHappy", () => {
       async react(emoji) {
         reactedWith = emoji;
       },
-    };
+    } as unknown as AnyPartialMessage;
 
     const didDelete = await ensureHappy(message);
 
