@@ -1,10 +1,17 @@
-const responses = [
+import { AnyPartialMessage } from "..";
+
+type Responses = {
+  key: string,
+  responses: string[]
+};
+
+const responses: Responses[] = [
   { key: "guh", responses: ["https://tenor.com/view/guh-gif-25116077"] },
 ];
 
-export function getResponses(text) {
+export function getResponses(text: string): string[] {
   text = text.toLowerCase();
-  const messageResponses = [];
+  const messageResponses: string[] = [];
   for (const item of responses) {
     if (text.includes(item.key)) {
       messageResponses.push(
@@ -15,7 +22,7 @@ export function getResponses(text) {
   return messageResponses;
 }
 
-export async function handleKeywords(message) {
+export async function handleKeywords(message: AnyPartialMessage): Promise<void> {
   const content = message?.content ?? "";
 
   const messageResponses = getResponses(content);
