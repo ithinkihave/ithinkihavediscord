@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { runMessageHandlersInOrder } from "../lib/messagePipeline.js";
+import { AnyPartialMessage } from "../index.js";
 
 describe("runMessageHandlersInOrder", () => {
   it("stops after a delete-capable handler reports it handled the message", async () => {
-    const message = { content: "hello" };
-    const calls = [];
+    const message = { content: "hello" } as AnyPartialMessage; // a bit evil
+    const calls: string[] = [];
 
     async function runMessageHandler(_message, context, handler) {
       calls.push(context);
@@ -38,8 +39,8 @@ describe("runMessageHandlersInOrder", () => {
   });
 
   it("continues to later handlers when earlier handlers do not stop the pipeline", async () => {
-    const message = { content: "hello" };
-    const calls = [];
+    const message = { content: "hello" } as AnyPartialMessage;
+    const calls: string[] = [];
 
     async function runMessageHandler(_message, context, handler) {
       calls.push(context);
@@ -70,8 +71,8 @@ describe("runMessageHandlersInOrder", () => {
   });
 
   it("stops when a handler reports an error", async () => {
-    const message = { content: "hello" };
-    const calls = [];
+    const message = { content: "hello" } as AnyPartialMessage;
+    const calls: string[] = [];
 
     async function runMessageHandler(_message, context, handler) {
       calls.push(context);
