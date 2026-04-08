@@ -1,4 +1,4 @@
-import { AttachmentBuilder, SlashCommandBuilder } from "discord.js";
+import { AttachmentBuilder, type ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import { renderSingleLineTextOnImage, toSingleFrameGif } from "./imageText.ts";
 
 const DEFAULT_GPA_TEMPLATE = new URL("../img/gpa.png", import.meta.url).pathname;
@@ -29,7 +29,7 @@ export const gpaCommandData = new SlashCommandBuilder()
   )
   .toJSON();
 
-export async function handleGpaCommand(interaction) {
+export async function handleGpaCommand(interaction: ChatInputCommandInteraction) {
   const text = interaction.options.getString("text", true).trim();
 
   if (!text) {

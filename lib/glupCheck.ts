@@ -1,4 +1,4 @@
-import { AttachmentBuilder, SlashCommandBuilder } from "discord.js";
+import { AttachmentBuilder, type ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import {
   addFakeCompressionArtifacts,
   renderTextOnImage,
@@ -29,7 +29,7 @@ export const glupCommandData = new SlashCommandBuilder()
   )
   .toJSON();
 
-export async function handleGlupCommand(interaction) {
+export async function handleGlupCommand(interaction: ChatInputCommandInteraction) {
   const text = interaction.options.getString("text", true).trim();
   const attachment = interaction.options.getAttachment("image");
 
