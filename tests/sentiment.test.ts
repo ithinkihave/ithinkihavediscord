@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { analyzeSentiment, ensureHappy } from "../lib/sentimentAnalysis.js";
+import { analyzeSentiment, ensureHappy } from "../lib/sentimentAnalysis.ts";
 
 describe("analyzeSentiment", () => {
   it("returns a higher score for positive text than negative text", () => {

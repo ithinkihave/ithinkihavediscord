@@ -3,7 +3,7 @@ import {
   addFakeCompressionArtifacts,
   renderTextOnImage,
   toSingleFrameGif,
-} from "./imageText.js";
+} from "./imageText.ts";
 
 const DEFAULT_GLUP_TEMPLATE = new URL("../img/glup.png", import.meta.url).pathname;
 const DEFAULT_GLUP_BOX = {

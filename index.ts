@@ -1,14 +1,14 @@
 import "dotenv/config.js";
-import { handleKeywords } from "./lib/keywordCheck.js";
-import { handleChineseChannelEnglishCheck } from "./lib/chineseCheck.js";
-import { handleTruthQuestion } from "./lib/truthCheck.js";
-import { handleServerRename } from "./lib/serverRename.js";
-import { gpaCommandData, handleGpaCommand } from "./lib/gpaCheck.js";
-import { glupCommandData, handleGlupCommand } from "./lib/glupCheck.js";
-import { ensureHappy } from "./lib/sentimentAnalysis.js";
-import { Client, ClientEvents, GatewayIntentBits, Message, OmitPartialGroupDMChannel, PartialMessage } from "discord.js";
-import { handlePossibleChessMessage } from "./lib/botChess.js";
-import { HandlerResult, MessageHandler, MessageHandlerReturnTypes, runMessageHandlersInOrder } from "./lib/messagePipeline.js";
+import { handleKeywords } from "./lib/keywordCheck.ts";
+import { handleChineseChannelEnglishCheck } from "./lib/chineseCheck.ts";
+import { handleTruthQuestion } from "./lib/truthCheck.ts";
+import { handleServerRename } from "./lib/serverRename.ts";
+import { gpaCommandData, handleGpaCommand } from "./lib/gpaCheck.ts";
+import { glupCommandData, handleGlupCommand } from "./lib/glupCheck.ts";
+import { ensureHappy } from "./lib/sentimentAnalysis.ts";
+import { Client, type ClientEvents, GatewayIntentBits, type Message, type OmitPartialGroupDMChannel, type PartialMessage } from "discord.js";
+import { handlePossibleChessMessage } from "./lib/botChess.ts";
+import { type HandlerResult, type MessageHandler, type MessageHandlerReturnTypes, runMessageHandlersInOrder } from "./lib/messagePipeline.ts";
 
 export type AnyPartialMessage<InGuild extends boolean = boolean> = OmitPartialGroupDMChannel<Message<InGuild> | PartialMessage<InGuild>>;
 export type AnyFullMessage<InGuild extends boolean = boolean> = OmitPartialGroupDMChannel<Message<InGuild>>;

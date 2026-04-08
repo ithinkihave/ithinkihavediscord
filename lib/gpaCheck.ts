@@ -1,5 +1,5 @@
 import { AttachmentBuilder, SlashCommandBuilder } from "discord.js";
-import { renderSingleLineTextOnImage, toSingleFrameGif } from "./imageText.js";
+import { renderSingleLineTextOnImage, toSingleFrameGif } from "./imageText.ts";
 
 const DEFAULT_GPA_TEMPLATE = new URL("../img/gpa.png", import.meta.url).pathname;
 

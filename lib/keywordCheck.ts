@@ -1,4 +1,4 @@
-import { AnyPartialMessage } from "..";
+import type { AnyPartialMessage } from "..";
 
 type Responses = {
   key: string,

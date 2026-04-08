@@ -1,4 +1,4 @@
-import { AnyPartialMessage } from "..";
+import type { AnyPartialMessage } from "..";
 
 const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
 const REQUIRED_RENAME_TERM_REGEX = /\baustin\b/;

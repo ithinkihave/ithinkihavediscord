@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { runMessageHandlersInOrder } from "../lib/messagePipeline.js";
-import { AnyPartialMessage } from "../index.js";
+import { runMessageHandlersInOrder } from "../lib/messagePipeline.ts";
+import type { AnyPartialMessage } from "../index.js";
 
 describe("runMessageHandlersInOrder", () => {
   it("stops after a delete-capable handler reports it handled the message", async () => {

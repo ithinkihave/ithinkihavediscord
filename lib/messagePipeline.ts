@@ -1,4 +1,4 @@
-import { AnyPartialMessage } from "..";
+import type { AnyPartialMessage } from "..";
 
 export type MessageHandler<T> = {
   context: string,

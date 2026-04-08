@@ -1,4 +1,4 @@
-import { AnyPartialMessage } from "..";
+import type { AnyPartialMessage } from "..";
 
 const CHINESE_CHANNEL_ID = "1486174868054474762";
 const ALLOWED_CHINESE_CHANNEL_CHAR_REGEX =
