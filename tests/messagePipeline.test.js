@@ -11,7 +11,7 @@ describe("runMessageHandlersInOrder", () => {
       calls.push(context);
       return {
         ok: true,
-        result: await handler(),
+        result: await handler(_message),
       };
     }
 
@@ -20,7 +20,7 @@ describe("runMessageHandlersInOrder", () => {
       [
         {
           context: "delete first",
-          handler: async () => true,
+          handler: async (incomingMessage) => incomingMessage === message,
           stopOnResult: true,
         },
         {
@@ -45,7 +45,7 @@ describe("runMessageHandlersInOrder", () => {
       calls.push(context);
       return {
         ok: true,
-        result: await handler(),
+        result: await handler(_message),
       };
     }
 
@@ -54,12 +54,12 @@ describe("runMessageHandlersInOrder", () => {
       [
         {
           context: "react first",
-          handler: async () => false,
+          handler: async (incomingMessage) => incomingMessage.content === "goodbye",
           stopOnResult: true,
         },
         {
           context: "reply second",
-          handler: async () => null,
+          handler: async (incomingMessage) => incomingMessage.content,
         },
       ],
       runMessageHandler,
@@ -85,7 +85,7 @@ describe("runMessageHandlersInOrder", () => {
 
       return {
         ok: true,
-        result: await handler(),
+        result: await handler(_message),
       };
     }
 
