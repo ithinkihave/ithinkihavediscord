@@ -8,10 +8,10 @@ import { glupCommandData, handleGlupCommand } from "./lib/glupCheck.js";
 import { ensureHappy } from "./lib/sentimentAnalysis.js";
 import { Client, ClientEvents, GatewayIntentBits, Message, OmitPartialGroupDMChannel, PartialMessage } from "discord.js";
 import { handlePossibleChessMessage } from "./lib/botChess.js";
-import { runMessageHandlersInOrder } from "./lib/messagePipeline.js";
+import { HandlerResult, MessageHandler, MessageHandlerReturnTypes, runMessageHandlersInOrder } from "./lib/messagePipeline.js";
 
-type AnyPartialMessage<InGuild extends boolean = boolean> = OmitPartialGroupDMChannel<Message<InGuild> | PartialMessage<InGuild>>;
-type AnyFullMessage<InGuild extends boolean = boolean> = OmitPartialGroupDMChannel<Message<InGuild>>;
+export type AnyPartialMessage<InGuild extends boolean = boolean> = OmitPartialGroupDMChannel<Message<InGuild> | PartialMessage<InGuild>>;
+export type AnyFullMessage<InGuild extends boolean = boolean> = OmitPartialGroupDMChannel<Message<InGuild>>;
 
 const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
 const CLANKER_ROLE_ID = "1435481760199610511";
@@ -192,7 +192,12 @@ function getNormalizedContent(message: AnyPartialMessage): string {
   return (message?.content ?? "").toLowerCase();
 }
 
-async function runMessageHandler(message: AnyPartialMessage, context, handler) {
+async function runMessageHandler<T extends MessageHandler<any>[]>(
+  message: AnyPartialMessage,
+  context: string,
+  handler: (message: AnyPartialMessage) => Promise<MessageHandlerReturnTypes<T>>
+): Promise<HandlerResult<MessageHandlerReturnTypes<T> | null>>
+  {
   try {
     return {
       ok: true,
@@ -207,7 +212,7 @@ async function runMessageHandler(message: AnyPartialMessage, context, handler) {
   }
 }
 
-async function reportMessageError(message: AnyPartialMessage, context, error: any) {
+async function reportMessageError(message: AnyPartialMessage, context: string, error: any) {
   console.error(`[bot] ${context}`, error);
 
   if (typeof message?.channel?.send !== "function") {
