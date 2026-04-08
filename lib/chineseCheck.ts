@@ -1,3 +1,5 @@
+import { AnyPartialMessage } from "..";
+
 const CHINESE_CHANNEL_ID = "1486174868054474762";
 const ALLOWED_CHINESE_CHANNEL_CHAR_REGEX =
   /[\p{sc=Han} \n\r\u3000.,!?。，、！？…]/u;
@@ -12,7 +14,7 @@ const ASCII_ART_MIN_LINE_COUNT = 8;
 const ASCII_ART_MIN_LINE_WIDTH = 20;
 const ASCII_ART_MAX_LINE_LENGTH_DELTA = 4;
 
-function shouldDeleteDisallowedChineseChannelMessage(message) {
+function shouldDeleteDisallowedChineseChannelMessage(message: AnyPartialMessage): boolean {
   if (message.channel?.id !== CHINESE_CHANNEL_ID) {
     return false;
   }
@@ -28,7 +30,7 @@ function shouldDeleteDisallowedChineseChannelMessage(message) {
   return shouldDeleteChineseChannelContent(message.content ?? "");
 }
 
-export function shouldDeleteChineseChannelContent(text) {
+export function shouldDeleteChineseChannelContent(text: string): boolean {
   const textWithoutMentions = text.replace(ALLOWED_CHINESE_CHANNEL_MENTION_REGEX, "");
   let chineseCharacterCount = 0;
   let countableCharacterCount = 0;
@@ -68,11 +70,11 @@ export function shouldDeleteChineseChannelContent(text) {
   return isSuspiciousRepeatedCharacterArt(textWithoutMentions);
 }
 
-function isNeutralChineseChannelFormatting(symbol) {
+function isNeutralChineseChannelFormatting(symbol: string): boolean {
   return symbol === " " || symbol === "\n" || symbol === "\r" || symbol === "\u3000";
 }
 
-function hasSuspiciousRepeatedCharacterChain(text) {
+function hasSuspiciousRepeatedCharacterChain(text: string): boolean {
   let nonWhitespaceCharacterCount = 0;
   let previousSymbol = "";
   let currentChainLength = 0;
@@ -102,8 +104,8 @@ function hasSuspiciousRepeatedCharacterChain(text) {
   return false;
 }
 
-function hasSuspiciousLineStructure(text) {
-  const lineLengths = [];
+function hasSuspiciousLineStructure(text: string): boolean {
+  const lineLengths: number[] = [];
 
   for (const rawLine of text.split(/\r?\n/u)) {
     let visibleCharacterCount = 0;
@@ -145,7 +147,7 @@ function hasSuspiciousLineStructure(text) {
   return (maxLineLength - minLineLength) <= ASCII_ART_MAX_LINE_LENGTH_DELTA;
 }
 
-function isSuspiciousRepeatedCharacterArt(text) {
+function isSuspiciousRepeatedCharacterArt(text: string): boolean {
   const characterCounts = new Map();
   let nonWhitespaceCharacterCount = 0;
 
@@ -175,7 +177,7 @@ function isSuspiciousRepeatedCharacterArt(text) {
       ASCII_ART_REPEATED_CHARACTER_RATIO_THRESHOLD;
 }
 
-export async function handleChineseChannelEnglishCheck(message) {
+export async function handleChineseChannelEnglishCheck(message: AnyPartialMessage): Promise<boolean> {
   if (!shouldDeleteDisallowedChineseChannelMessage(message)) {
     return false;
   }
