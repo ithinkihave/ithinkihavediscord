@@ -2,9 +2,9 @@
   "name": "ithinkihave",
   "version": "1.0.0",
   "type": "module",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "start": "node index.js",
+    "start": "node index.ts",
     "test": "node --test"
   },
   "repository": "https://github.com/InvalidSE/ithinkihave.git",
@@ -21,5 +21,8 @@
     "request": "^2.88.2",
     "sharp": "^0.34.5",
     "spotify-web-api-node": "^5.0.2"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2"
   }
 }
