@@ -1,36 +1,46 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { runMessageHandlersInOrder } from "../lib/messagePipeline.ts";
+import {
+  runMessageHandlersInOrder,
+  type MessageHandler,
+  type RunMessageHandler,
+} from "../lib/messagePipeline.ts";
 import type { AnyPartialMessage } from "../lib/messageTypes.ts";
 
-describe("runMessageHandlersInOrder", () => {
+describe("runMessageHandlersInOrder typed helper", () => {
   it("stops after a delete-capable handler reports it handled the message", async () => {
-    const message = { content: "hello" } as AnyPartialMessage; // a bit evil
+    const message = { content: "hello" } as unknown as AnyPartialMessage;
     const calls: string[] = [];
 
-    async function runMessageHandler(_message, context, handler) {
+    const handlers: MessageHandler<boolean>[] = [
+      {
+        context: "delete first",
+        handler: async (incomingMessage) => incomingMessage === message,
+        stopOnResult: true,
+      },
+      {
+        context: "should never run",
+        handler: async () => {
+          throw new Error("later handler should not run");
+        },
+      },
+    ];
+
+    const runMessageHandler: RunMessageHandler<typeof handlers> = async (
+      incomingMessage,
+      context,
+      handler,
+    ) => {
       calls.push(context);
       return {
         ok: true,
-        result: await handler(_message),
+        result: await handler(incomingMessage),
       };
-    }
+    };
 
     const handlerCheck = await runMessageHandlersInOrder(
       message,
-      [
-        {
-          context: "delete first",
-          handler: async (incomingMessage) => incomingMessage === message,
-          stopOnResult: true,
-        },
-        {
-          context: "should never run",
-          handler: async () => {
-            throw new Error("later handler should not run");
-          },
-        },
-      ],
+      handlers,
       runMessageHandler,
     );
 
@@ -39,30 +49,36 @@ describe("runMessageHandlersInOrder", () => {
   });
 
   it("continues to later handlers when earlier handlers do not stop the pipeline", async () => {
-    const message = { content: "hello" } as AnyPartialMessage;
+    const message = { content: "hello" } as unknown as AnyPartialMessage;
     const calls: string[] = [];
 
-    async function runMessageHandler(_message, context, handler) {
+    const handlers: MessageHandler<boolean | string>[] = [
+      {
+        context: "react first",
+        handler: async (incomingMessage) => incomingMessage.content === "goodbye",
+        stopOnResult: true,
+      },
+      {
+        context: "reply second",
+        handler: async (incomingMessage) => incomingMessage.content ?? "",
+      },
+    ];
+
+    const runMessageHandler: RunMessageHandler<typeof handlers> = async (
+      incomingMessage,
+      context,
+      handler,
+    ) => {
       calls.push(context);
       return {
         ok: true,
-        result: await handler(_message),
+        result: await handler(incomingMessage),
       };
-    }
+    };
 
     const handlerCheck = await runMessageHandlersInOrder(
       message,
-      [
-        {
-          context: "react first",
-          handler: async (incomingMessage) => incomingMessage.content === "goodbye",
-          stopOnResult: true,
-        },
-        {
-          context: "reply second",
-          handler: async (incomingMessage) => incomingMessage.content,
-        },
-      ],
+      handlers,
       runMessageHandler,
     );
 
@@ -71,10 +87,26 @@ describe("runMessageHandlersInOrder", () => {
   });
 
   it("stops when a handler reports an error", async () => {
-    const message = { content: "hello" } as AnyPartialMessage;
+    const message = { content: "hello" } as unknown as AnyPartialMessage;
     const calls: string[] = [];
 
-    async function runMessageHandler(_message, context, handler) {
+    const handlers: MessageHandler<boolean>[] = [
+      {
+        context: "broken handler",
+        handler: async () => false,
+      },
+      {
+        context: "should never run",
+        handler: async () => true,
+        stopOnResult: true,
+      },
+    ];
+
+    const runMessageHandler: RunMessageHandler<typeof handlers> = async (
+      incomingMessage,
+      context,
+      handler,
+    ) => {
       calls.push(context);
 
       if (context === "broken handler") {
@@ -86,23 +118,13 @@ describe("runMessageHandlersInOrder", () => {
 
       return {
         ok: true,
-        result: await handler(_message),
+        result: await handler(incomingMessage),
       };
-    }
+    };
 
     const handlerCheck = await runMessageHandlersInOrder(
       message,
-      [
-        {
-          context: "broken handler",
-          handler: async () => false,
-        },
-        {
-          context: "should never run",
-          handler: async () => true,
-          stopOnResult: true,
-        },
-      ],
+      handlers,
       runMessageHandler,
     );
 

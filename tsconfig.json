@@ -9,7 +9,10 @@
     "noEmit": true,
     "strict": false,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noImplicitAny": true,
+    "strictNullChecks": false, // change to true once the above passes
+    "noUncheckedIndexedAccess": true
   },
   "include": ["./*.ts", "lib/**/*.ts", "tests/**/*.ts"]
 }

@@ -27,7 +27,7 @@ describe("ensureHappy", () => {
       async delete() {
         deleted = true;
       },
-      async react(emoji) {
+      async react(emoji: string) {
         reactedWith = emoji;
       },
     } as unknown as AnyPartialMessage;
@@ -49,7 +49,7 @@ describe("ensureHappy", () => {
       async delete() {
         deleted = true;
       },
-      async react(emoji) {
+      async react(emoji: string) {
         reactedWith = emoji;
       },
     } as unknown as AnyPartialMessage;
@@ -71,7 +71,7 @@ describe("ensureHappy", () => {
       async delete() {
         deleted = true;
       },
-      async react(emoji) {
+      async react(emoji: string) {
         reactedWith = emoji;
       },
     } as unknown as AnyPartialMessage;

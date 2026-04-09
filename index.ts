@@ -88,11 +88,14 @@ client.on("interactionCreate", async (interaction) => {
 
     const message = "Something went wrong while rendering that image.";
     if (interaction.deferred || interaction.replied) {
-      await interaction.editReply({ content: message, attachments: [] }).catch(() => null);
+      try {
+        await interaction.editReply({ content: message, attachments: [] });
+      } catch {} // ignore reply failures
       return;
     }
-
-    await interaction.reply({ content: message, ephemeral: true }).catch(() => null);
+    try {
+      await interaction.reply({ content: message, ephemeral: true });
+    } catch {} // ignore reply failures
   }
 });
 
@@ -186,8 +189,15 @@ async function shouldIgnoreMessage(message: AnyPartialMessage): Promise<boolean>
     return false;
   }
 
-  const member =
-    message.member ?? (await message.guild.members.fetch(message.author.id).catch(() => null));
+  let member = message.member ?? null;
+
+  if (!member) {
+    try {
+      member = await message.guild.members.fetch(message.author.id);
+    } catch {
+      member = null;
+    }
+  }
 
   return member?.roles?.cache?.has(CLANKER_ROLE_ID) ?? false;
 }
