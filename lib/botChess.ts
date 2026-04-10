@@ -22,6 +22,7 @@ export async function handlePossibleChessMessage(message: AnyPartialMessage): Pr
   if (shouldReact()) {
     const reaction = REACTIONS[Math.floor(Math.random() * REACTIONS.length)];
     if (!reaction) {
+      console.warn("[bot] no chess reactions configured for random reaction");
       return;
     }
 
