@@ -1,4 +1,5 @@
-import { AttachmentBuilder, type ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { AttachmentBuilder, SlashCommandBuilder } from "discord.js";
+import type { CommandName, NamedChatInputCommandInteraction } from "./commandTypes.ts";
 import {
   addFakeCompressionArtifacts,
   renderTextOnImage,
@@ -13,8 +14,10 @@ const DEFAULT_GLUP_BOX = {
   y2: 217,
 };
 
+export const GLUP_COMMAND_NAME = "glup" satisfies CommandName;
+
 export const glupCommandData = new SlashCommandBuilder()
-  .setName("glup")
+  .setName(GLUP_COMMAND_NAME)
   .setDescription("Render wrapped text into the glup speech bubble")
   .addStringOption((option) =>
     option
@@ -29,7 +32,9 @@ export const glupCommandData = new SlashCommandBuilder()
   )
   .toJSON();
 
-export async function handleGlupCommand(interaction: ChatInputCommandInteraction) {
+type GlupCommandInteraction = NamedChatInputCommandInteraction<typeof GLUP_COMMAND_NAME>;
+
+export async function handleGlupCommand(interaction: GlupCommandInteraction) {
   const text = interaction.options.getString("text", true).trim();
   const attachment = interaction.options.getAttachment("image");
 

@@ -3,12 +3,13 @@ import { handleKeywords } from "./lib/keywordCheck.ts";
 import { handleChineseChannelEnglishCheck } from "./lib/chineseCheck.ts";
 import { handleTruthQuestion } from "./lib/truthCheck.ts";
 import { handleServerRename } from "./lib/serverRename.ts";
-import { gpaCommandData, handleGpaCommand } from "./lib/gpaCheck.ts";
-import { glupCommandData, handleGlupCommand } from "./lib/glupCheck.ts";
+import { GPA_COMMAND_NAME, gpaCommandData, handleGpaCommand } from "./lib/gpaCheck.ts";
+import { GLUP_COMMAND_NAME, glupCommandData, handleGlupCommand } from "./lib/glupCheck.ts";
 import { ensureHappy } from "./lib/sentimentAnalysis.ts";
 import { Client, type ClientEvents, GatewayIntentBits } from "discord.js";
 import { handlePossibleChessMessage } from "./lib/botChess.ts";
 import { type HandlerResult, type MessageHandler, type MessageHandlerReturnTypes, runMessageHandlersInOrder } from "./lib/messagePipeline.ts";
+import { isNamedCommandInteraction } from "./lib/commandTypes.ts";
 import type { AnyFullMessage, AnyPartialMessage } from "./lib/messageTypes.ts";
 
 const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
@@ -75,12 +76,12 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   try {
-    if (interaction.commandName === "gpa") {
+    if (isNamedCommandInteraction(interaction, GPA_COMMAND_NAME)) {
       await handleGpaCommand(interaction);
       return;
     }
 
-    if (interaction.commandName === "glup") {
+    if (isNamedCommandInteraction(interaction, GLUP_COMMAND_NAME)) {
       await handleGlupCommand(interaction);
     }
   } catch (error) {
