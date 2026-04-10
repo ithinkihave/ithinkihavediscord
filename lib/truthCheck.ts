@@ -51,6 +51,9 @@ export async function handleTruthQuestion(message: AnyPartialMessage): Promise<v
   const chance = Math.random();
   const source = chance < 0.5 ? trueresponses : falseresponses;
   const randomResponse = source[Math.floor(Math.random() * source.length)];
+  if (!randomResponse) {
+    return;
+  }
 
   const repliedToReference = await replyToReferencedMessage(message, randomResponse);
 

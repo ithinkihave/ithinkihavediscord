@@ -14,9 +14,10 @@ export function getResponses(text: string): string[] {
   const messageResponses: string[] = [];
   for (const item of responses) {
     if (text.includes(item.key)) {
-      messageResponses.push(
-        item.responses[Math.floor(Math.random() * item.responses.length)],
-      );
+      const response = item.responses[Math.floor(Math.random() * item.responses.length)];
+      if (response) {
+        messageResponses.push(response);
+      }
     }
   }
   return messageResponses;

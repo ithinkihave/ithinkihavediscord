@@ -21,6 +21,10 @@ function shouldReact(): boolean {
 export async function handlePossibleChessMessage(message: AnyPartialMessage): Promise<void> {
   if (shouldReact()) {
     const reaction = REACTIONS[Math.floor(Math.random() * REACTIONS.length)];
+    if (!reaction) {
+      return;
+    }
+
     try {
       await message.react(reaction);
     } catch (reactionError) {

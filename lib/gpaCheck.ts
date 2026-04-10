@@ -39,7 +39,7 @@ export async function handleGpaCommand(interaction: ChatInputCommandInteraction)
 
   await interaction.deferReply();
 
-  let currentBuffer = null;
+  let currentBuffer: Buffer | null = null;
 
   for (const box of GPA_TEXT_BOXES) {
     const { buffer } = await renderSingleLineTextOnImage({
@@ -60,6 +60,10 @@ export async function handleGpaCommand(interaction: ChatInputCommandInteraction)
     });
 
     currentBuffer = buffer;
+  }
+
+  if (!currentBuffer) {
+    throw new Error("GPA render did not produce an image buffer.");
   }
 
   const gifBuffer = await toSingleFrameGif(currentBuffer);

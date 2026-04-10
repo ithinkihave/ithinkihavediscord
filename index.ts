@@ -6,10 +6,10 @@ import { handleServerRename } from "./lib/serverRename.ts";
 import { gpaCommandData, handleGpaCommand } from "./lib/gpaCheck.ts";
 import { glupCommandData, handleGlupCommand } from "./lib/glupCheck.ts";
 import { ensureHappy } from "./lib/sentimentAnalysis.ts";
-import { CacheType, Client, type ClientEvents, GatewayIntentBits, Interaction } from "discord.js";
+import { Client, type ClientEvents, GatewayIntentBits } from "discord.js";
 import { handlePossibleChessMessage } from "./lib/botChess.ts";
 import { type HandlerResult, type MessageHandler, type MessageHandlerReturnTypes, runMessageHandlersInOrder } from "./lib/messagePipeline.ts";
-import type { AnyFullMessage, AnyPartialMessage, CommandName } from "./lib/messageTypes.ts";
+import type { AnyFullMessage, AnyPartialMessage } from "./lib/messageTypes.ts";
 
 const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
 const CLANKER_ROLE_ID = "1435481760199610511";
@@ -69,11 +69,7 @@ client.on("messageUpdate", async (oldMessage, newMessage) => {
   }
 });
 
-type CommandInteraction<Cached extends CacheType = CacheType> = Interaction<Cached> & {
-  commandName: CommandName,
-}
-
-client.on("interactionCreate", async (interaction: CommandInteraction) => {
+client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) {
     return;
   }

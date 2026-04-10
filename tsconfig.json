@@ -7,12 +7,13 @@
     "types": ["node"],
     "allowImportingTsExtensions": true,
     "noEmit": true,
-    "strict": false,
+    "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "noImplicitAny": true,
-    "strictNullChecks": false, // change to true once the above passes
-    "noUncheckedIndexedAccess": true
+    "noUncheckedIndexedAccess": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   },
   "include": ["./*.ts", "lib/**/*.ts", "tests/**/*.ts"]
 }

@@ -127,8 +127,13 @@ function hasSuspiciousLineStructure(text: string): boolean {
     return false;
   }
 
-  let minLineLength = lineLengths[0];
-  let maxLineLength = lineLengths[0];
+  const [firstLineLength] = lineLengths;
+  if (firstLineLength === undefined) {
+    return false;
+  }
+
+  let minLineLength = firstLineLength;
+  let maxLineLength = firstLineLength;
 
   for (const lineLength of lineLengths) {
     if (lineLength < ASCII_ART_MIN_LINE_WIDTH) {

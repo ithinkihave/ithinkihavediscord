@@ -73,11 +73,11 @@ export function wrapText(text: string, maxWidth: number, fontSize: number): stri
         ? splitToken(token, maxWidth, fontSize)
         : [token];
 
-      for (let index = 0; index < pieces.length; index += 1) {
-        const piece = pieces[index];
-        const isContinuation = index > 0;
+      let isContinuation = false;
+      for (const piece of pieces) {
         if (!currentLine) {
           currentLine = piece;
+          isContinuation = true;
           continue;
         }
 
@@ -90,6 +90,8 @@ export function wrapText(text: string, maxWidth: number, fontSize: number): stri
           wrappedLines.push(currentLine);
           currentLine = piece;
         }
+
+        isContinuation = true;
       }
     }
 
