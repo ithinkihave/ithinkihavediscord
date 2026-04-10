@@ -10,7 +10,6 @@ import { CacheType, Client, type ClientEvents, GatewayIntentBits, Interaction } 
 import { handlePossibleChessMessage } from "./lib/botChess.ts";
 import { type HandlerResult, type MessageHandler, type MessageHandlerReturnTypes, runMessageHandlersInOrder } from "./lib/messagePipeline.ts";
 import type { AnyFullMessage, AnyPartialMessage, CommandName } from "./lib/messageTypes.ts";
-import { snipeCommandData } from "./lib/snipe.ts";
 
 const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
 const CLANKER_ROLE_ID = "1435481760199610511";
@@ -160,7 +159,7 @@ async function registerSlashCommands<Ready extends boolean = boolean>(client: Cl
   const guildId = process.env.COMMAND_GUILD_ID ?? ITHINKIHAVE_SERVER_ID;
   const guild = await client.guilds.fetch(guildId);
 
-  await guild.commands.set([gpaCommandData, glupCommandData, snipeCommandData]);
+  await guild.commands.set([gpaCommandData, glupCommandData]);
   console.log(`[bot] registered slash commands in ${guild.name}`);
 }
 
