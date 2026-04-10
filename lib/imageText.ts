@@ -247,7 +247,7 @@ type RenderTextParams = {
   source: ImageSource,
   text: string,
   box: BoxLike,
-  options: Partial<RenderOptions>,
+  options?: Partial<RenderOptions>,
 };
 
 export async function renderSingleLineTextOnImage({ source, text, box, options = {} }: RenderTextParams): Promise<RenderedSingleLineText> {
