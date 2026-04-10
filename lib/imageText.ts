@@ -233,7 +233,7 @@ type RenderOptions = BoxedLayout & {
   paddingY: number,
   minFontSize: number,
   maxFontSize: number,
-  horizontalSquish: number
+  horizontalSquish: number,
   textAnchor: TextAnchor,
   fontWeight: number,
   fill: HexColor,
@@ -246,7 +246,7 @@ type RenderOptions = BoxedLayout & {
 type RenderTextParams = {
   source: ImageSource,
   text: string,
-  box: BoxLike
+  box: BoxLike,
   options: Partial<RenderOptions>,
 };
 
