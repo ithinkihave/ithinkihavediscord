@@ -19,7 +19,7 @@ const GPA_TEXT_BOXES = [
   },
 ];
 
-export const GPA_COMMAND_NAME: CommandName = "gpa";
+export const GPA_COMMAND_NAME = "gpa" satisfies CommandName;
 
 export const gpaCommandData = new SlashCommandBuilder()
   .setName(GPA_COMMAND_NAME)

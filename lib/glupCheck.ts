@@ -14,7 +14,7 @@ const DEFAULT_GLUP_BOX = {
   y2: 217,
 };
 
-export const GLUP_COMMAND_NAME: CommandName = "glup";
+export const GLUP_COMMAND_NAME = "glup" satisfies CommandName;
 
 export const glupCommandData = new SlashCommandBuilder()
   .setName(GLUP_COMMAND_NAME)
