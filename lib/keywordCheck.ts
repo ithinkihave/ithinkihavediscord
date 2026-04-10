@@ -10,17 +10,12 @@ const responses: Responses[] = [
 ];
 
 export function getResponses(text: string): string[] {
-  text = text.toLowerCase();
-  const messageResponses: string[] = [];
-  for (const item of responses) {
-    if (text.includes(item.key)) {
-      const response = item.responses[Math.floor(Math.random() * item.responses.length)];
-      if (response) {
-        messageResponses.push(response);
-      }
-    }
-  }
-  return messageResponses;
+  const normalizedText = text.toLowerCase();
+
+  return responses
+    .filter((item) => normalizedText.includes(item.key))
+    .map((item) => item.responses[Math.floor(Math.random() * item.responses.length)])
+    .filter((response): response is string => response !== undefined);
 }
 
 export async function handleKeywords(message: AnyPartialMessage): Promise<void> {
