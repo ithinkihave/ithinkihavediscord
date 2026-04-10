@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
-import { shouldRenameServer } from "../lib/serverRename.js";
+import { shouldRenameServer } from "../lib/serverRename.ts";
 
 describe("Austin", () => {
   it("Should rename if we think we are austin", () => {

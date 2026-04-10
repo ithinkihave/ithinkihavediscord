@@ -1,3 +1,5 @@
+import type { AnyPartialMessage } from "./messageTypes.ts";
+
 const REACT_PROBABILITY = 1 / 100;
 const REACTIONS = [
   "1486108529822662838",
@@ -11,14 +13,18 @@ const REACTIONS = [
   "1486108555751985333",
 ];
 
-function shouldReact() {
+function shouldReact(): boolean {
   // if someone wants to add this then maybe it shouldn't react to its own messages or messages in some channels? idk
   return Math.random() <= REACT_PROBABILITY;
 }
 
-export async function handlePossibleChessMessage(message) {
+export async function handlePossibleChessMessage(message: AnyPartialMessage): Promise<void> {
   if (shouldReact()) {
     const reaction = REACTIONS[Math.floor(Math.random() * REACTIONS.length)];
+    if (!reaction) {
+      return;
+    }
+
     try {
       await message.react(reaction);
     } catch (reactionError) {

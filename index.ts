@@ -1,14 +1,15 @@
 import "dotenv/config.js";
-import { handleKeywords } from "./lib/keywordCheck.js";
-import { handleChineseChannelEnglishCheck } from "./lib/chineseCheck.js";
-import { handleTruthQuestion } from "./lib/truthCheck.js";
-import { handleServerRename } from "./lib/serverRename.js";
-import { gpaCommandData, handleGpaCommand } from "./lib/gpaCheck.js";
-import { glupCommandData, handleGlupCommand } from "./lib/glupCheck.js";
-import { ensureHappy } from "./lib/sentimentAnalysis.js";
-import { Client, GatewayIntentBits } from "discord.js";
-import { handlePossibleChessMessage } from "./lib/botChess.js";
-import { runMessageHandlersInOrder } from "./lib/messagePipeline.js";
+import { handleKeywords } from "./lib/keywordCheck.ts";
+import { handleChineseChannelEnglishCheck } from "./lib/chineseCheck.ts";
+import { handleTruthQuestion } from "./lib/truthCheck.ts";
+import { handleServerRename } from "./lib/serverRename.ts";
+import { gpaCommandData, handleGpaCommand } from "./lib/gpaCheck.ts";
+import { glupCommandData, handleGlupCommand } from "./lib/glupCheck.ts";
+import { ensureHappy } from "./lib/sentimentAnalysis.ts";
+import { Client, type ClientEvents, GatewayIntentBits } from "discord.js";
+import { handlePossibleChessMessage } from "./lib/botChess.ts";
+import { type HandlerResult, type MessageHandler, type MessageHandlerReturnTypes, runMessageHandlersInOrder } from "./lib/messagePipeline.ts";
+import type { AnyFullMessage, AnyPartialMessage } from "./lib/messageTypes.ts";
 
 const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
 const CLANKER_ROLE_ID = "1435481760199610511";
@@ -47,7 +48,7 @@ client.on("messageCreate", async (message) => {
     if (await shouldIgnoreMessage(message)) return;
 
     // Handle the created message
-    await handleMessage(message, "create");
+    await handleMessage(message, "messageCreate");
   } catch (error) {
     console.error("[bot] error handling created message", error);
   }
@@ -62,7 +63,7 @@ client.on("messageUpdate", async (oldMessage, newMessage) => {
     if (await shouldIgnoreMessage(message)) return;
 
     // Handle the updated message
-    await handleMessage(message, "update");
+    await handleMessage(message, "messageUpdate");
   } catch (error) {
     console.error("[bot] error handling updated message", error);
   }
@@ -87,11 +88,14 @@ client.on("interactionCreate", async (interaction) => {
 
     const message = "Something went wrong while rendering that image.";
     if (interaction.deferred || interaction.replied) {
-      await interaction.editReply({ content: message, attachments: [] }).catch(() => null);
+      try {
+        await interaction.editReply({ content: message, attachments: [] });
+      } catch {} // ignore reply failures
       return;
     }
-
-    await interaction.reply({ content: message, ephemeral: true }).catch(() => null);
+    try {
+      await interaction.reply({ content: message, ephemeral: true });
+    } catch {} // ignore reply failures
   }
 });
 
@@ -102,7 +106,7 @@ client.login(process.env.TOKEN);
 // ================== Handlers & Helpers ==================
 
 // Main handler function
-async function handleMessage(message, eventType) {
+async function handleMessage<Event extends keyof ClientEvents>(message: AnyPartialMessage, eventType: Event) {
   logMessage(message, eventType);
 
   // Handle delete-capable checks first so a deleted message does not trigger
@@ -147,7 +151,7 @@ async function handleMessage(message, eventType) {
   }
 }
 
-async function registerSlashCommands(client) {
+async function registerSlashCommands<Ready extends boolean = boolean>(client: Client<Ready>) {
   const guildId = process.env.COMMAND_GUILD_ID ?? ITHINKIHAVE_SERVER_ID;
   const guild = await client.guilds.fetch(guildId);
 
@@ -155,9 +159,15 @@ async function registerSlashCommands(client) {
   console.log(`[bot] registered slash commands in ${guild.name}`);
 }
 
+function isFullMessage<InGuild extends boolean = boolean>(
+  message: AnyPartialMessage<InGuild>
+): message is AnyFullMessage<InGuild> {
+  return !message.partial;
+}
+
 // Make sure we have the full msg object
-async function hydrateMessage(message) {
-  if (!message.partial) {
+async function hydrateMessage<InGuild extends boolean = boolean>(message: AnyPartialMessage<InGuild>): Promise<AnyFullMessage<InGuild> | null> {
+  if (isFullMessage(message)) {
     return message;
   }
 
@@ -170,8 +180,8 @@ async function hydrateMessage(message) {
 }
 
 // Ignore messages from itself and internal bookkeeping accounts.
-async function shouldIgnoreMessage(message) {
-  if (!message?.author || message.author.id === client.user.id) {
+async function shouldIgnoreMessage(message: AnyPartialMessage): Promise<boolean> {
+  if (!message?.author || message.author.id === client.user?.id) {
     return true;
   }
 
@@ -179,17 +189,29 @@ async function shouldIgnoreMessage(message) {
     return false;
   }
 
-  const member =
-    message.member ?? (await message.guild.members.fetch(message.author.id).catch(() => null));
+  let member = message.member ?? null;
+
+  if (!member) {
+    try {
+      member = await message.guild.members.fetch(message.author.id);
+    } catch {
+      member = null;
+    }
+  }
 
   return member?.roles?.cache?.has(CLANKER_ROLE_ID) ?? false;
 }
 
-function getNormalizedContent(message) {
+function getNormalizedContent(message: AnyPartialMessage): string {
   return (message?.content ?? "").toLowerCase();
 }
 
-async function runMessageHandler(message, context, handler) {
+async function runMessageHandler<T extends MessageHandler<any>[]>(
+  message: AnyPartialMessage,
+  context: string,
+  handler: (message: AnyPartialMessage) => Promise<MessageHandlerReturnTypes<T>>
+): Promise<HandlerResult<MessageHandlerReturnTypes<T> | null>>
+  {
   try {
     return {
       ok: true,
@@ -204,7 +226,7 @@ async function runMessageHandler(message, context, handler) {
   }
 }
 
-async function reportMessageError(message, context, error) {
+async function reportMessageError(message: AnyPartialMessage, context: string, error: any) {
   console.error(`[bot] ${context}`, error);
 
   if (typeof message?.channel?.send !== "function") {
@@ -219,9 +241,9 @@ async function reportMessageError(message, context, error) {
 }
 
 // Log messages
-function logMessage(message, eventType) {
+function logMessage<Event extends keyof ClientEvents>(message: AnyPartialMessage, eventType: Event) {
   if (message.guild?.id === ITHINKIHAVE_SERVER_ID) {
-    const prefix = eventType === "update" ? "[edited] " : "";
-    console.log(`${prefix}[${message.author.tag}] ${message.content}`);
+    const prefix = eventType === "messageUpdate" ? "[edited] " : "";
+    console.log(`${prefix}[${message.author?.tag}] ${message.content}`);
   }
 }

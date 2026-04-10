@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { fitTextToBox, normalizeBox, wrapText } from "../lib/imageText.js";
+import { fitTextToBox, normalizeBox, wrapText } from "../lib/imageText.ts";
 
 describe("image text layout", () => {
   it("normalizes coordinate bounds", () => {
