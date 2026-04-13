@@ -140,4 +140,4 @@ This bot is currently tailored to one Discord server. Several values are hard-co
 - custom emoji IDs
 - template images
 
-If you want to reuse it in another server, start by reviewing [index.js](index.js) and the files in [lib](/lib).
+If you want to reuse it in another server, start by reviewing [index.ts](index.ts) and the files in [lib](/lib).
