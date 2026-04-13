@@ -2,6 +2,7 @@ import "dotenv/config.js";
 import { Client, GatewayIntentBits, type ChatInputCommandInteraction } from "discord.js";
 import { GPA_COMMAND_NAME, gpaCommandData, handleGpaCommand } from "./lib/gpaCheck.ts";
 import { GLUP_COMMAND_NAME, glupCommandData, handleGlupCommand } from "./lib/glupCheck.ts";
+import { handleNamedCommandInteraction } from "./lib/commandTypes.ts";
 import { handleMessage, hydrateMessage, shouldIgnoreMessage, getNormalizedContent, ITHINKIHAVE_SERVER_ID } from "./lib/messageHandler.ts";
 import { EMOJI_WAR_COMMAND_NAME, emojiWarCommandData, handleEmojiWarCommand } from "./lib/emojiWar.ts";
 
@@ -60,10 +61,11 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   try {
-    const handler = commandHandlers.get(interaction.commandName);
-    if (handler) {
-      await handler(interaction);
-    }
+    await handleNamedCommandInteraction(interaction, [
+      { name: GPA_COMMAND_NAME, handler: handleGpaCommand, },
+      { name: GLUP_COMMAND_NAME, handler: handleGlupCommand },
+      { name: EMOJI_WAR_COMMAND_NAME, handler: handleEmojiWarCommand },
+    ])
   } catch (error) {
     console.error(`[bot] error handling /${interaction.commandName}`, error);
 
