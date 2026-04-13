@@ -123,7 +123,7 @@ Execute the following ▶️ to bring the platform live and flourishing 🚀:
 npm start
 ```
 
-Upon successful initialisation ✅, the bot 🤖 doth auto-register the `/gpa` and `/glup` slash commands 🕹️ for the target guild, delivering an instant command-line product experience most splendid 🚀.
+Upon successful initialisation ✅, the bot 🤖 doth auto-register the `/gpa`, `/glup`, and `/emoji-war` slash commands 🕹️ for the target guild, delivering an instant command-line product experience most splendid 🚀.
 
 ## Quality assurance & test coverage 🧪
 
