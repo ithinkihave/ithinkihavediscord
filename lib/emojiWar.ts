@@ -47,9 +47,7 @@ export class WarBoard<Size extends number> {
   }
 
   #updateEdge() {
-    const size = this.board.length - 1;
-    const [row, col] = [Math.floor(Math.random() * size), Math.floor(Math.random() * size)];
-    const [dy, dx] = Math.random() > 0.5 ? [1, 0] : [0, 1];
+    const [row, col, dy, dx] = this.#getRandomEdge();
     const [a, b] = [this.board[row]?.[col], this.board[row + dy]?.[col + dx]]
     if (a === undefined || b === undefined) {
       throw new Error("Emoji war board is corrupted");
@@ -83,6 +81,13 @@ export class WarBoard<Size extends number> {
     const biasing_speed = -Math.log(T100_UNFAIRNESS_PERCENT / 100) / 100;
     const factor = 1 - Math.exp(-this.turns_played * biasing_speed);
     return factor * fair_winrate + (1 - factor) * unfair_winrate;
+  }
+
+  #getRandomEdge(): [row: number, col: number, dx: number, dy: number] {
+    const size = this.size - 1;
+    const [row, col] = [Math.floor(Math.random() * size), Math.floor(Math.random() * size)];
+    const [dy, dx] = Math.random() > 0.5 ? [1, 0] : [0, 1];
+    return [row, col, dy, dx];
   }
 
   #getPieceCount(count_piece: WarPiece) {
