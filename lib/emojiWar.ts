@@ -139,9 +139,9 @@ export async function handleEmojiWarCommand(interaction: EmojiWarCommandInteract
 
   const prefix = `Emoji war between: ${emojis.join(" - ")}\n`
   await interaction.deferReply();
-  while (!game.gameFinished()) {
+  do {
     interaction.editReply(prefix + game.toString());
     game.updateGame();
     await sleep(500);
-  }
+  } while (!game.gameFinished())
 }
