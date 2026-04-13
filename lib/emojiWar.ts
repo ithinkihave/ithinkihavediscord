@@ -129,7 +129,7 @@ export const emojiWarCommandData = new SlashCommandBuilder()
   .addStringOption((option) =>
     option
       .setName("emojis")
-      .setDescription("Space seperated list of the emojis in the war")
+      .setDescription("Space separated list of the emojis in the war")
       .setRequired(true),
   )
   .toJSON();
