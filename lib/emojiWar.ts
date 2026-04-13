@@ -2,7 +2,7 @@ import { SlashCommandBuilder } from "discord.js";
 import type { CommandName, NamedChatInputCommandInteraction } from "./commandTypes.ts";
 
 type WarPiece = number & { readonly __brand: "WarPiece" }
-type Array<T, N extends number, Acc extends T[] = []> = (Acc["length"] extends N ? Acc : Array<T, N, [...Acc, T]>) & T[];
+type FixedLengthArray<T, N extends number, Acc extends T[] = []> = (Acc["length"] extends N ? Acc : FixedLengthArray<T, N, [...Acc, T]>) & T[];
 type PieceMapping = { [piece: WarPiece]: string }
 
 const BOARD_BASE_PERCENT = 100;
@@ -10,7 +10,7 @@ const BOARD_UPDATE_PERCENT = 20;
 const T100_UNFAIRNESS_PERCENT = 10;
 
 export class WarBoard<Size extends number> {
-  board: Array<Array<WarPiece, Size>, Size>;
+  board: FixedLengthArray<FixedLengthArray<WarPiece, Size>, Size>;
   piece_mapping: PieceMapping;
   size: Size;
   turns_played: number;
@@ -87,7 +87,7 @@ export class WarBoard<Size extends number> {
     // if there are many a then a is more likely to win
     const unfair_winrate = (as) / (as + bs);
     const fair_winrate = 0.5;
-    // if the game is taking forever make it more rigged
+    // if the game is taking forever make it fairer to slow the dominant piece down
     const biasing_speed = -Math.log(T100_UNFAIRNESS_PERCENT / 100) / 100;
     const factor = 1 - Math.exp(-this.turns_played * biasing_speed);
     return factor * fair_winrate + (1 - factor) * unfair_winrate;
@@ -119,8 +119,8 @@ export class WarBoard<Size extends number> {
   }
 }
 
-function array<T, Size extends number>(length: Size, value: (idx: number) => T): Array<T, Size> {
-  return Array.from({ length }, (_, idx) => value(idx)) as Array<T, Size>;
+function array<T, Size extends number>(length: Size, value: (idx: number) => T): FixedLengthArray<T, Size> {
+  return globalThis.Array.from({ length }, (_, idx) => value(idx)) as FixedLengthArray<T, Size>;
 }
 
 
@@ -145,6 +145,13 @@ function sleep(ms: number): Promise<void> {
 
 export async function handleEmojiWarCommand(interaction: EmojiWarCommandInteraction) {
   const emojis = interaction.options.getString("emojis", true).split(" ").map(emoji => emoji.replace(/:.*:/, ":_:").trim()).filter(emoji => emoji !== "");
+  if (emojis.length < 2) {
+    await interaction.reply({
+      content: "Please provide at least two non-empty emojis for the war.",
+      ephemeral: true,
+    });
+    return;
+  }
   const game = new WarBoard(8, emojis);
 
   const prefix = `Emoji war between: ${emojis.join(" - ")}\n`
