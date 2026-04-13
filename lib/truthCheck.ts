@@ -45,7 +45,7 @@ function isOutsideTruthCheckChannel(message: DiscordMessage): boolean {
   }
 
   if ('parent' in message.channel && message.channel.parent && 'name' in message.channel.parent) {
-     return message.channel.parent.name !== TRUTH_CHECK_CHANNEL_NAME;
+    return message.channel.parent.name !== TRUTH_CHECK_CHANNEL_NAME;
   }
 
   return true;

@@ -120,7 +120,7 @@ export class WarBoard<Size extends number> {
 }
 
 function array<T, Size extends number>(length: Size, value: (idx: number) => T): FixedLengthArray<T, Size> {
-  return globalThis.Array.from({ length }, (_, idx) => value(idx)) as FixedLengthArray<T, Size>;
+  return Array.from({ length }, (_, idx) => value(idx)) as FixedLengthArray<T, Size>;
 }
 
 
