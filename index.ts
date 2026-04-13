@@ -1,10 +1,17 @@
 import "dotenv/config.js";
-import { Client, GatewayIntentBits } from "discord.js";
+import { Client, GatewayIntentBits, type ChatInputCommandInteraction } from "discord.js";
 import { GPA_COMMAND_NAME, gpaCommandData, handleGpaCommand } from "./lib/gpaCheck.ts";
 import { GLUP_COMMAND_NAME, glupCommandData, handleGlupCommand } from "./lib/glupCheck.ts";
-import { isNamedCommandInteraction } from "./lib/commandTypes.ts";
 import { handleMessage, hydrateMessage, shouldIgnoreMessage, getNormalizedContent, ITHINKIHAVE_SERVER_ID } from "./lib/messageHandler.ts";
 import { EMOJI_WAR_COMMAND_NAME, emojiWarCommandData, handleEmojiWarCommand } from "./lib/emojiWar.ts";
+
+type CommandHandler = (interaction: ChatInputCommandInteraction) => Promise<void>;
+
+const commandHandlers = new Map<string, CommandHandler>([
+  [GPA_COMMAND_NAME, handleGpaCommand as CommandHandler],
+  [GLUP_COMMAND_NAME, handleGlupCommand as CommandHandler],
+  [EMOJI_WAR_COMMAND_NAME, handleEmojiWarCommand as CommandHandler],
+]);
 
 const client = new Client({
   intents: [
@@ -53,17 +60,9 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   try {
-    if (isNamedCommandInteraction(interaction, GPA_COMMAND_NAME)) {
-      await handleGpaCommand(interaction);
-      return;
-    }
-
-    if (isNamedCommandInteraction(interaction, GLUP_COMMAND_NAME)) {
-      await handleGlupCommand(interaction);
-    }
-
-    if (isNamedCommandInteraction(interaction, EMOJI_WAR_COMMAND_NAME)) {
-      await handleEmojiWarCommand(interaction);
+    const handler = commandHandlers.get(interaction.commandName);
+    if (handler) {
+      await handler(interaction);
     }
   } catch (error) {
     console.error(`[bot] error handling /${interaction.commandName}`, error);

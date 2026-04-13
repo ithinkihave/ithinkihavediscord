@@ -1,7 +1,6 @@
 import trueresponses from "../res/true.json" with { type: "json" };
 import falseresponses from "../res/false.json" with { type: "json" };
 import type { DiscordMessage } from "./messageTypes.ts";
-import type { GuildChannel, GuildTextBasedChannel } from "discord.js";
 
 const TRUTH_CHECK_PATTERNS = [
   /\bis (this|that|it) (?:(?:actually|really) )?true\b/,
@@ -32,8 +31,14 @@ async function replyToReferencedMessage(message: DiscordMessage, response: strin
   }
 }
 
-function isNamedTruthCheck(channel: GuildChannel | GuildTextBasedChannel): typeof channel["name"] extends string ? boolean : undefined {
-  return channel.name === TRUTH_CHECK_CHANNEL_NAME;
+function isTruthCheckChannel(channel: DiscordMessage["channel"]): boolean {
+  if ("name" in channel && channel.name === TRUTH_CHECK_CHANNEL_NAME) {
+    return true;
+  }
+  if ("parent" in channel && channel.parent && "name" in channel.parent) {
+    return channel.parent.name === TRUTH_CHECK_CHANNEL_NAME;
+  }
+  return false;
 }
 
 function isOutsideTruthCheckChannel(message: DiscordMessage): boolean {
@@ -45,15 +50,7 @@ function isOutsideTruthCheckChannel(message: DiscordMessage): boolean {
     return false;
   }
 
-  if ("name" in message.channel && isNamedTruthCheck(message.channel)) {
-    return false;
-  }
-
-  if ("parent" in message.channel && message.channel.parent && "name" in message.channel.parent) {
-    return isNamedTruthCheck(message.channel.parent);
-  }
-
-  return true;
+  return !isTruthCheckChannel(message.channel);
 }
 
 export async function handleTruthQuestion(message: DiscordMessage): Promise<void> {
