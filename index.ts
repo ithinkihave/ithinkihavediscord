@@ -3,7 +3,7 @@ import { Client, GatewayIntentBits } from "discord.js";
 import { GPA_COMMAND_NAME, gpaCommandData, handleGpaCommand } from "./lib/gpaCheck.ts";
 import { GLUP_COMMAND_NAME, glupCommandData, handleGlupCommand } from "./lib/glupCheck.ts";
 import { isNamedCommandInteraction } from "./lib/commandTypes.ts";
-import { handleMessage, hydrateMessage, shouldIgnoreMessage, getNormalizedContent } from "./lib/messageHandler.ts";
+import { handleMessage, hydrateMessage, shouldIgnoreMessage, getNormalizedContent, ITHINKIHAVE_SERVER_ID } from "./lib/messageHandler.ts";
 
 const client = new Client({
   intents: [
@@ -81,7 +81,7 @@ client.on("interactionCreate", async (interaction) => {
 client.login(process.env.TOKEN);
 
 async function registerSlashCommands<Ready extends boolean = boolean>(client: Client<Ready>) {
-  const guildId = process.env.COMMAND_GUILD_ID ?? "1435477855596318742";
+  const guildId = process.env.COMMAND_GUILD_ID ?? ITHINKIHAVE_SERVER_ID;
   const guild = await client.guilds.fetch(guildId);
 
   await guild.commands.set([gpaCommandData, glupCommandData]);

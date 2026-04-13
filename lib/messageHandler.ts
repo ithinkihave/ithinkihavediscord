@@ -8,7 +8,7 @@ import { handlePossibleChessMessage } from "./botChess.ts";
 import { type HandlerResult, type MessageHandler, type MessageHandlerReturnTypes, runMessageHandlersInOrder } from "./messagePipeline.ts";
 import type { BotMessage, FullBotMessage } from "./messageTypes.ts";
 
-const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
+export const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
 const CLANKER_ROLE_ID = "1435481760199610511";
 const ERROR_IMG = "https://cdn.discordapp.com/attachments/1487372867153690664/1487372867350958221/IMG-20260328-WA0017.png";
 
