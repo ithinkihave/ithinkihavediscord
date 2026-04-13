@@ -7,7 +7,7 @@
 		"start": "tsx index.ts",
 		"test": "node --import tsx/esm --test tests/*.test.ts",
 		"typecheck": "tsc --noEmit",
-		"formatcheck": "prettier --list-different $(find . -type f | grep -E \".(ts|json|yaml|md)$\" | grep -v node_modules) | xargs -I{} bash -c 'diff --color -u {} <(prettier {})'",
+		"formatcheck": "prettier --list-different $(find . -type f | grep -E \".(ts|json|yaml|yml|md)$\" | grep -v node_modules) | xargs -I{} bash -c 'diff --color -u {} <(prettier {})'",
 		"format": "prettier . --write"
 	},
 	"repository": "https://github.com/InvalidSE/ithinkihave.git",
