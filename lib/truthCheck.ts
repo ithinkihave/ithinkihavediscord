@@ -32,16 +32,23 @@ async function replyToReferencedMessage(message: DiscordMessage, response: strin
 }
 
 function isOutsideTruthCheckChannel(message: DiscordMessage): boolean {
-  if (!message.guild || !TRUTH_CHECK_RESTRICTED_GUILD_IDS.has(message.guild?.id)) {
+  if (!message.guild || !TRUTH_CHECK_RESTRICTED_GUILD_IDS.has(message.guild.id)) {
     return false;
   }
 
-  // We can't get proper type safety here without runtime checks :/
-  if ((message.channel as {name?: string})?.name === TRUTH_CHECK_CHANNEL_NAME) {
+  if (message.channel.isDMBased()) {
     return false;
   }
 
-  return (message.channel as {parent?: {name?: string}})?.parent?.name !== TRUTH_CHECK_CHANNEL_NAME;
+  if ('name' in message.channel && message.channel.name === TRUTH_CHECK_CHANNEL_NAME) {
+    return false;
+  }
+
+  if ('parent' in message.channel && message.channel.parent && 'name' in message.channel.parent) {
+     return message.channel.parent.name !== TRUTH_CHECK_CHANNEL_NAME;
+  }
+
+  return true;
 }
 
 export async function handleTruthQuestion(message: DiscordMessage): Promise<void> {
