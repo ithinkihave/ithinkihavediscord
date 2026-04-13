@@ -91,9 +91,6 @@ export class WarBoard<Size extends number> {
     const colMax = this.size - dx;
     const row = Math.floor(Math.random() * rowMax);
     const col = Math.floor(Math.random() * colMax);
-    if (row + dy >= this.size || col + dx >= this.size) {
-      throw new Error("Emoji war edge generation produced an out-of-bounds index");
-    }
     return [row, col, dy, dx];
   }
 
