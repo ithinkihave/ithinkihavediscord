@@ -123,7 +123,7 @@ Execute the following ▶️ to bring the platform live and flourishing 🚀:
 npm start
 ```
 
-Upon successful initialisation ✅, the bot 🤖 doth auto-register the `/gpa` and `/glup` slash commands 🕹️ for the target guild, delivering an instant command-line product experience most splendid 🚀.
+Upon successful initialisation ✅, the bot 🤖 doth auto-register the `/gpa`, `/glup`, and `/emoji-war` slash commands 🕹️ for the target guild, delivering an instant command-line product experience most splendid 🚀.
 
 ## Quality assurance & test coverage 🧪
 
@@ -152,4 +152,4 @@ This platform is currently optimised 🎯 for a single strategic Discord deploym
 - custom emoji IDs 😄 — brand asset references most cherished 🎨
 - template images 🖼️ — visual content IP most prized 💡
 
-To onboard this solution 💼 into a new server environment most noble 🔧, thou shouldst commence with a thorough audit 🔍 of [index.js](index.js) and the service modules in [lib](/lib) 📁.
+To onboard this solution 💼 into a new server environment most noble 🔧, thou shouldst commence with a thorough audit 🔍 of [index.ts](index.ts) and the service modules in [lib](/lib) 📁.

@@ -36,7 +36,6 @@ jobs:
             package.json
             package-lock.json
             captain-definition
-            yarn.lock
           outPath: deploy.tar
 
       - name: Deploy App to CapRover
