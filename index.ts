@@ -4,7 +4,6 @@ import { GPA_COMMAND_NAME, gpaCommandData, handleGpaCommand } from "./lib/gpaChe
 import { GLUP_COMMAND_NAME, glupCommandData, handleGlupCommand } from "./lib/glupCheck.ts";
 import { isNamedCommandInteraction } from "./lib/commandTypes.ts";
 import { handleMessage, hydrateMessage, shouldIgnoreMessage, getNormalizedContent, ITHINKIHAVE_SERVER_ID } from "./lib/messageHandler.ts";
-import { EMOJI_WAR_COMMAND_NAME, emojiWarCommandData, handleEmojiWarCommand } from "./lib/emojiWar.ts";
 
 const client = new Client({
   intents: [
@@ -63,10 +62,6 @@ client.on("interactionCreate", async (interaction) => {
     if (isNamedCommandInteraction(interaction, GLUP_COMMAND_NAME)) {
       await handleGlupCommand(interaction);
     }
-
-    if (isNamedCommandInteraction(interaction, EMOJI_WAR_COMMAND_NAME)) {
-      await handleEmojiWarCommand(interaction);
-    }
   } catch (error) {
     console.error(`[bot] error handling /${interaction.commandName}`, error);
 
@@ -89,7 +84,7 @@ async function registerSlashCommands<Ready extends boolean = boolean>(client: Cl
   const guildId = process.env.COMMAND_GUILD_ID ?? ITHINKIHAVE_SERVER_ID;
   const guild = await client.guilds.fetch(guildId);
 
-  await guild.commands.set([gpaCommandData, glupCommandData, emojiWarCommandData]);
+  await guild.commands.set([gpaCommandData, glupCommandData]);
   console.log(`[bot] registered slash commands in ${guild.name}`);
 }
 
