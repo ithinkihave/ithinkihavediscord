@@ -5,7 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "start": "tsx index.ts",
-    "test": "node --import tsx/esm --test 'tests/*.test.ts'",
+    "test": "node --import tsx/esm --test tests/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "repository": "https://github.com/InvalidSE/ithinkihave.git",
