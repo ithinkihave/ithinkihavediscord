@@ -5,14 +5,15 @@ type WarPiece = number & { readonly __brand: "WarPiece" }
 type Array<T, N extends number, Acc extends T[] = []> = (Acc["length"] extends N ? Acc : Array<T, N, [...Acc, T]>) & T[];
 type PieceMapping = { [piece: WarPiece]: string }
 
-const BOARD_BASE_PERCENT = 20;
+const BOARD_BASE_PERCENT = 50;
 const BOARD_UPDATE_PERCENT = 20;
+const T100_UNFAIRNESS_PERCENT = 10;
 
 export class WarBoard<Size extends number> {
   board: Array<Array<WarPiece, Size>, Size>;
   piece_mapping: PieceMapping;
   size: Size;
-  num_pieces: number;
+  turns_played: number;
 
   constructor(size: Size, pieces: string[]) {
     const board = array(size, (y) => array(size, (x) => {
@@ -24,7 +25,7 @@ export class WarBoard<Size extends number> {
     ));
     this.board = board;
     this.size = size;
-    this.num_pieces = pieces.length;
+    this.turns_played = 0;
     this.piece_mapping = pieces.reduce((acc: PieceMapping, val, i) => {
       acc[i as WarPiece] = val;
       return acc;
@@ -42,8 +43,7 @@ export class WarBoard<Size extends number> {
   }
 
   gameFinished(): boolean {
-    const first = this.board[0][0];
-    return this.#getPieceCount(first) == this.size * this.size;
+    return this.#getUniquePieceCount() == 1;
   }
 
   #updateEdge() {
@@ -71,15 +71,32 @@ export class WarBoard<Size extends number> {
 
   // rate that a wins against b
   #getWinRate(a: WarPiece, b: WarPiece): number {
-    // we assume BOARD_BASE_PERCENT% of the board is each no matter what to prevent games from lasting too long
-    const as = this.#getPieceCount(a) + this.size * this.size * BOARD_BASE_PERCENT / 100 / this.num_pieces;
-    const bs = this.#getPieceCount(b) + this.size * this.size * BOARD_BASE_PERCENT / 100 / this.num_pieces;
-    // if there are few b then a is less likely to win
-    return (bs) / (as + bs)
+    // we assume BOARD_BASE_PERCENT% of the board is even no matter what to make games more interesting
+    const piece_count = this.#getUniquePieceCount();
+    const extra_per = this.size * this.size * BOARD_BASE_PERCENT / 100 / piece_count;
+    const as = this.#getPieceCount(a) + extra_per;
+    const bs = this.#getPieceCount(b) + extra_per;
+    // if there are many a then a is more likely to win
+    const unfair_winrate = (as) / (as + bs);
+    const fair_winrate = 0.5;
+    // if the game is taking forever make it more rigged
+    const biasing_speed = -Math.log(T100_UNFAIRNESS_PERCENT / 100) / 100;
+    const factor = 1 - Math.exp(-this.turns_played * biasing_speed);
+    return factor * fair_winrate + (1 - factor) * unfair_winrate;
   }
 
   #getPieceCount(count_piece: WarPiece) {
     return this.board.reduce((acc, row, _) => acc + row.filter((piece) => piece == count_piece).reduce((acc, _, _i) => acc + 1, 0), 0);
+  }
+
+  #getUniquePieceCount(): number {
+    return this.board.reduce((acc, row, _) => {
+      row.reduce((acc, piece, _) => {
+        acc.add(piece);
+        return acc;
+      }, acc);
+      return acc;
+    }, new Set()).size;
   }
 }
 
@@ -108,7 +125,7 @@ function sleep(ms: number): Promise<void> {
 }
 
 export async function handleEmojiWarCommand(interaction: EmojiWarCommandInteraction) {
-  const emojis = interaction.options.getString("emojis", true).trim().split(",");
+  const emojis = interaction.options.getString("emojis", true).trim().split(",").map(emoji => emoji.replace(/:.*:/, ""));
   const game = new WarBoard(8, emojis);
 
   const prefix = `Emoji war between: ${emojis.join(" - ")}\n`
