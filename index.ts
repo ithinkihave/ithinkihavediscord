@@ -2,6 +2,7 @@ import "dotenv/config.js";
 import { Client, GatewayIntentBits } from "discord.js";
 import { GPA_COMMAND_NAME, gpaCommandData, handleGpaCommand } from "./lib/gpaCheck.ts";
 import { GLUP_COMMAND_NAME, glupCommandData, handleGlupCommand } from "./lib/glupCheck.ts";
+import { VERSION_COMMAND_NAME, versionCommandData, handleVersionCommand } from "./lib/versionCheck.ts";
 import { isNamedCommandInteraction } from "./lib/commandTypes.ts";
 import { handleMessage, hydrateMessage, shouldIgnoreMessage, getNormalizedContent, ITHINKIHAVE_SERVER_ID } from "./lib/messageHandler.ts";
 
@@ -61,6 +62,11 @@ client.on("interactionCreate", async (interaction) => {
 
     if (isNamedCommandInteraction(interaction, GLUP_COMMAND_NAME)) {
       await handleGlupCommand(interaction);
+      return;
+    }
+
+    if (isNamedCommandInteraction(interaction, VERSION_COMMAND_NAME)) {
+      await handleVersionCommand(interaction);
     }
   } catch (error) {
     console.error(`[bot] error handling /${interaction.commandName}`, error);
@@ -84,7 +90,7 @@ async function registerSlashCommands<Ready extends boolean = boolean>(client: Cl
   const guildId = process.env.COMMAND_GUILD_ID ?? ITHINKIHAVE_SERVER_ID;
   const guild = await client.guilds.fetch(guildId);
 
-  await guild.commands.set([gpaCommandData, glupCommandData]);
+  await guild.commands.set([gpaCommandData, glupCommandData, versionCommandData]);
   console.log(`[bot] registered slash commands in ${guild.name}`);
 }
 
