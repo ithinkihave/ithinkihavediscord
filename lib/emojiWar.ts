@@ -84,9 +84,16 @@ export class WarBoard<Size extends number> {
   }
 
   #getRandomEdge(): [row: number, col: number, dx: number, dy: number] {
-    const size = this.size - 1;
-    const [row, col] = [Math.floor(Math.random() * size), Math.floor(Math.random() * size)];
     const [dy, dx] = Math.random() > 0.5 ? [1, 0] : [0, 1];
+    // When dy=1 the edge spans row -> row+1, so row must be at most size-2.
+    // When dx=1 the edge spans col -> col+1, so col must be at most size-2.
+    const rowMax = this.size - dy;
+    const colMax = this.size - dx;
+    const row = Math.floor(Math.random() * rowMax);
+    const col = Math.floor(Math.random() * colMax);
+    if (row + dy >= this.size || col + dx >= this.size) {
+      throw new Error("Emoji war edge generation produced an out-of-bounds index");
+    }
     return [row, col, dy, dx];
   }
 

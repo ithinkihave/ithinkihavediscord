@@ -9,3 +9,39 @@ describe("Even Board", () => {
     assert.equal(zeros, 4 * 4 / 2);
   });
 });
+
+describe("Edge generation", () => {
+  it("Should eventually generate an edge involving the far-right column", () => {
+    const size = 4;
+    const board = new WarBoard(size, ["A", "B"]);
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        (board.board[r] as number[])[c] = 0;
+      }
+    }
+    (board.board[0] as number[])[size - 1] = 1;
+
+    for (let i = 0; i < 10000; i++) {
+      board.updateGame();
+      if ((board.board[0] as number[])[size - 1] === 0) break;
+    }
+    assert.equal((board.board[0] as number[])[size - 1], 0, "Far-right column cell was never updated via an edge");
+  });
+
+  it("Should eventually generate an edge involving the bottom row", () => {
+    const size = 4;
+    const board = new WarBoard(size, ["A", "B"]);
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        (board.board[r] as number[])[c] = 0;
+      }
+    }
+    (board.board[size - 1] as number[])[0] = 1;
+
+    for (let i = 0; i < 10000; i++) {
+      board.updateGame();
+      if ((board.board[size - 1] as number[])[0] === 0) break;
+    }
+    assert.equal((board.board[size - 1] as number[])[0], 0, "Bottom row cell was never updated via an edge");
+  });
+});
