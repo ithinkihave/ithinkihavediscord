@@ -1,27 +1,27 @@
 {
-  "name": "ithinkihave",
-  "version": "1.0.0",
-  "type": "module",
-  "main": "index.ts",
-  "scripts": {
-    "start": "tsx index.ts",
-    "test": "node --import tsx/esm --test tests/*.test.ts",
-    "typecheck": "tsc --noEmit",
-    "formatcheck": "prettier --list-different \"**/*.ts\" | xargs -I{} bash -c 'diff --color -u {} <(prettier {})'",
-    "format": "npx prettier . --write"
-  },
-  "repository": "https://github.com/InvalidSE/ithinkihave.git",
-  "author": "Taine Reader <taine.reader@gmail.com>",
-  "license": "MIT",
-  "dependencies": {
-    "discord.js": "^14.16.2",
-    "dotenv": "^16.4.5",
-    "natural": "^8.1.1",
-    "sharp": "^0.34.5",
-    "tsx": "^4.21.0"
-  },
-  "devDependencies": {
-    "@types/node": "^25.5.2",
-    "typescript": "^6.0.2"
-  }
+	"name": "ithinkihave",
+	"version": "1.0.0",
+	"type": "module",
+	"main": "index.ts",
+	"scripts": {
+		"start": "tsx index.ts",
+		"test": "node --import tsx/esm --test tests/*.test.ts",
+		"typecheck": "tsc --noEmit",
+		"formatcheck": "prettier --list-different \"**/*.ts\" | xargs -I{} bash -c 'diff --color -u {} <(prettier {})'",
+		"format": "npx prettier . --write"
+	},
+	"repository": "https://github.com/InvalidSE/ithinkihave.git",
+	"author": "Taine Reader <taine.reader@gmail.com>",
+	"license": "MIT",
+	"dependencies": {
+		"discord.js": "^14.16.2",
+		"dotenv": "^16.4.5",
+		"natural": "^8.1.1",
+		"sharp": "^0.34.5",
+		"tsx": "^4.21.0"
+	},
+	"devDependencies": {
+		"@types/node": "^25.5.2",
+		"typescript": "^6.0.2"
+	}
 }
