@@ -129,7 +129,7 @@ export const emojiWarCommandData = new SlashCommandBuilder()
   .addStringOption((option) =>
     option
       .setName("emojis")
-      .setDescription("CSV of the emojis in the war")
+      .setDescription("Space seperated list of the emojis in the war")
       .setRequired(true),
   )
   .toJSON();
@@ -141,7 +141,7 @@ function sleep(ms: number): Promise<void> {
 }
 
 export async function handleEmojiWarCommand(interaction: EmojiWarCommandInteraction) {
-  const emojis = interaction.options.getString("emojis", true).split(",").map(emoji => emoji.replace(/:.*:/, ":_:").trim());
+  const emojis = interaction.options.getString("emojis", true).split(" ").map(emoji => emoji.replace(/:.*:/, ":_:").trim());
   const game = new WarBoard(8, emojis);
 
   const prefix = `Emoji war between: ${emojis.join(" - ")}\n`
