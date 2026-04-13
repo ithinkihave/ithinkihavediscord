@@ -1,7 +1,7 @@
 import trueresponses from "../res/true.json" with { type: "json" };
 import falseresponses from "../res/false.json" with { type: "json" };
 import type { DiscordMessage } from "./messageTypes.ts";
-import { CategoryChannel, Guild, type GuildChannel, type GuildTextBasedChannel } from "discord.js";
+import type { GuildChannel, GuildTextBasedChannel } from "discord.js";
 
 const TRUTH_CHECK_PATTERNS = [
   /\bis (this|that|it) (?:(?:actually|really) )?true\b/,
