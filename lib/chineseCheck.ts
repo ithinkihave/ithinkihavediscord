@@ -1,6 +1,7 @@
+import { config } from "../config.ts";
 import type { DiscordMessage } from "./messageTypes.ts";
 
-const CHINESE_CHANNEL_ID = "1486174868054474762";
+const CHINESE_CHANNEL_ID = config.channels.chineseCheckChannelId;
 const ALLOWED_CHINESE_CHANNEL_CHAR_REGEX =
   /[\p{sc=Han} \n\r\u3000.,!?。，、！？…]/u;
 const ALLOWED_CHINESE_CHANNEL_MENTION_REGEX = /<@!?\d+>|<@&\d+>/gu;
