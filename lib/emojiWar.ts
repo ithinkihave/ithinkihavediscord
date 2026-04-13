@@ -159,5 +159,5 @@ export async function handleEmojiWarCommand(interaction: EmojiWarCommandInteract
     throw new Error("The winner doesn't exist");
   }
   const message = prefix + game.toString() + `\n# The winner of the war was ${winner}!`
-  interaction.editReply(message);
+  await interaction.editReply(message);
 }
