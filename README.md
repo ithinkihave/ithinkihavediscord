@@ -1,24 +1,22 @@
-# ithinkihave 🤔
+# ithinkihave
 
-> **Hark! 🚀 'Tis a most disruptive instrument of community engagement 🤖, wrought of AI-driven conversational sorcery and next-generation moderation pipelines 🛡️.**
+A small Discord bot for the "i think i have" server. It mixes community moderation, joke reactions, and a couple of image-generating slash commands.
 
-A most high-impact Discord bot 🤖 doth deliver measurable value 📈 unto the "i think i have" server 🖥️. It doth synergize community moderation 🛡️, organic jest reactions ♟️, and best-in-class image-generating slash commands 🖼️ into a single, scalable solution most grand 💼.
+## What it does
 
-## Core value proposition 💎
+- Renames the server when a message matches the "i think i have..." pattern.
+- Replies to "is this true?" style messages in English and Chinese.
+- Deletes non-Chinese or suspicious ASCII-art-style messages in the dedicated Chinese channel.
+- Enforces positive sentiment in one specific channel.
+- Replies to keyword matches like `guh`.
+- Randomly reacts with chess-themed custom emoji.
+- Provides `/gpa` and `/glup` slash commands that render text onto meme templates.
 
-- **Server brand management 🏷️** — doth dynamically rename the server 🖥️ when a missive matches the "i think i have..." pattern 📝, driving brand awareness across the realm 📈.
-- **Bilingual truth-validation pipeline ❓** — doth reply to "is this true?" style missives in both the English tongue and the Chinese 🇨🇳, maximising cross-market reach 'cross the globe 🌐.
-- **Content compliance engine 🗑️** — doth strike down non-Chinese or suspicious ASCII-art-style missives 🚨 in the dedicated Chinese channel 🇨🇳, ensuring regulatory alignment most righteous ✅.
-- **Sentiment-optimised community health 😊** — doth enforce positive-sentiment KPIs 📊 in one high-value channel most precious 💎.
-- **Keyword-triggered engagement 📢** — doth proactively reply to keyword matches 🔑 such as `guh`, boosting interaction metrics most gloriously 📈.
-- **Gamified reaction framework ♟️** — doth randomly bestow chess-themed custom emoji 🎲 to drive daily active user growth most vigorously 🚀.
-- **Visual content generation suite 🖼️** — the `/gpa` 📊 and `/glup` 💬 slash commands doth render text upon meme templates 🎨, unlocking viral content opportunities most bountiful 🔥.
+## Commands
 
-## Product roadmap & commands 🕹️
+### `/gpa`
 
-### `/gpa` 📊
-
-A high-ROI 💰 command that doth render the provided text upon the GPA template image 🖼️ and returneth a single-frame GIF 🎞️, optimising shareability metrics most admirably 📈.
+Renders the provided text onto the GPA template image and returns a single-frame GIF.
 
 Example:
 
@@ -28,9 +26,9 @@ Example:
 
 ![The GPA template with a GPA of NaN](res/gpa-nan.gif)
 
-### `/glup` 💬
+### `/glup`
 
-An end-to-end meme-generation solution 💡 that doth render wrapped text 📝 into the glup speech bubble 💬. A custom image template 🖼️ may optionally be injected 💉 to personalise the content pipeline most finely 🎨.
+Renders wrapped text into the glup speech bubble. You can optionally provide a custom image template.
 
 Example:
 
@@ -40,11 +38,11 @@ Example:
 
 ![The glup template with a lambda expression as text](res/glup-lambda.gif)
 
-## Automated message behaviours 💌
+## Message behaviors
 
-### 🏷️ Server rename — brand-identity module
+### Server rename
 
-Shouldst a missive commence with one of these high-intent patterns 📝, the bot doth execute a server-rename action 🏷️ to keep brand identity agile and most responsive 🚀:
+If a message starts with one of these patterns, the bot may rename the server:
 
 - `i think i have ...`
 - `我想我有 ...`
@@ -53,103 +51,93 @@ Shouldst a missive commence with one of these high-intent patterns 📝, the bot
 - `我想 ... austin`
 - `我觉得 ... austin`
 
-### ✅ Truth replies — fact-verification service
+### Truth replies
 
-The bot 🤖 doth deliver real-time ⚡ fact-validation responses to high-signal missives including:
+The bot answers messages like:
 
 - `is this true?`
 - `is it real`
 - `这是真的吗`
 - `真的假的`
 
-In one restricted guild 🔒, this vertical doth only activate inside the `is-this-true` channel 📍 to maintain scoped service-level agreements most honourable 🤝.
+In one restricted guild, this only runs inside the `is-this-true` area.
 
-### 🇨🇳 Chinese-only channel — compliance & governance module
+### Chinese-only channel moderation
 
-In the configured Chinese channel 🇨🇳, the bot doth enforce a zero-tolerance content-governance policy 🗑️, removing missives 🚨 that:
+In the configured Chinese channel, the bot deletes messages that:
 
-- contain non-Chinese characters 🚫 outside a small approved allowlist 📋
-- contain attachments 📎 outside the accepted content taxonomy 🗂️
-- fail the Han-character ratio quality threshold 📉
-- exhibit ASCII-art or repeated-character spam patterns 🤖 most indicative of low-value content 🗑️
+- contain non-Chinese characters outside a small allowed set
+- contain attachments
+- fail the Han-character ratio check
+- look like ASCII art or repeated-character spam
 
-### 😊 Happy channel — sentiment analytics platform
+### Happy channel moderation
 
-In the configured "happy" channel 😊, all missives are passed through an AI-powered 🤖 `natural` sentiment-scoring pipeline 📊:
+In the configured "happy" channel, messages are scored with `natural` sentiment analysis:
 
-- missives of positive sentiment doth receive a 👍 reaction, reinforcing healthy community behaviours most wholesome 🌱
-- missives scoring below `0.2` are removed 🗑️ to safeguard the channel's net-promoter score most zealously 📊
+- positive-enough messages get a reaction
+- messages with sentiment scores below `0.2` are deleted
 
-## Technology stack 🛠️
+## Tech stack
 
-Our lean, cloud-native 🌐 technology stack is optimised for rapid iteration ⚡ and low operational overhead most efficient 💰:
+- Node.js `v22+`
+- discord.js
+- sharp
+- natural
 
-| Technology | Role | Value |
-|---|---|---|
-| Node.js `v22+` 🟢 | Runtime | Industry-standard, high-throughput execution environment |
-| discord.js 💬 | Platform SDK | Direct integration with the Discord API surface |
-| sharp 🖼️ | Image processing | Best-in-class performance for GIF/PNG generation pipelines |
-| natural 🌿 | NLP engine | Powers the sentiment-analysis and keyword-matching modules |
+## Setup
 
-## Onboarding & go-to-market setup ⚙️
-
-### 1. Dependency acquisition 📦
-
-Prithee, leverage `npm` 📦 to onboard all required packages into thy local environment 💻:
+### 1. Install dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Environment configuration 🔐
-
-Thou must provision a `.env` file 📄 with thy deployment credentials 🔑 to activate the authentication layer 🔐:
+### 2. Create a `.env` file
 
 ```env
 TOKEN=your_discord_bot_token
 COMMAND_GUILD_ID=your_test_or_target_guild_id
 ```
 
-Strategic notes 📝:
+Notes:
 
-- `TOKEN` is a required 🔑 credential — the core authentication asset most vital 🛡️ for all API calls.
-- `COMMAND_GUILD_ID` is an optional 🎯 parameter. If omitted ➡️, the platform doth fall back to the built-in server ID 🖥️, enabling zero-friction deployment most swift 🚀.
+- `TOKEN` is required.
+- `COMMAND_GUILD_ID` is optional. If omitted, the bot falls back to the built-in server ID in the code.
 
-### 3. Launch 🚀
-
-Execute the following ▶️ to bring the platform live and flourishing 🚀:
+### 3. Start the bot
 
 ```bash
 npm start
 ```
 
-Upon successful initialisation ✅, the bot 🤖 doth auto-register the `/gpa` and `/glup` slash commands 🕹️ for the target guild, delivering an instant command-line product experience most splendid 🚀.
+When the bot comes online, it registers the `/gpa` and `/glup` slash commands for the configured guild.
 
-## Quality assurance & test coverage 🧪
+## Tests
 
-Our rigorous QA pipeline 🔬 doth ensure production-grade reliability most steadfast 💪. Execute the full test suite ▶️ with:
+Run the test suite with:
 
 ```bash
 npm test
 ```
 
-Current test coverage 📋 doth span all core business-logic modules 🏗️:
+Current tests cover:
 
-- 🔍 truth-question matching — doth validate the fact-verification service ✅
-- 🇨🇳 Chinese-channel filtering rules — doth ensure compliance-engine correctness ⚖️
-- 🔑 keyword matching — doth confirm engagement-trigger accuracy 🎯
-- 🏷️ server rename matching — doth verify brand-management logic 🏗️
-- 😊 sentiment analysis — doth stress-test the sentiment-scoring pipeline 📊
-- 🖼️ image text layout helpers — doth guarantee visual-content generation fidelity 🎨
+- truth-question matching
+- Chinese-channel filtering rules
+- keyword matching
+- server rename matching
+- sentiment analysis
+- image text layout helpers
 
-## Configuration & customisation notes 📝
+## Configuration notes
 
-This platform is currently optimised 🎯 for a single strategic Discord deployment most focused 🖥️. Several values representing key business configuration ⚙️ are hard-coded in the source 💻, including:
+This bot is currently tailored to one Discord server. Several values are hard-coded in the source, including:
 
-- guild IDs 🆔 — top-level organisational unit identifiers of the realm 🏢
-- channel IDs 🆔 — per-channel product surface identifiers most precise 📍
-- role IDs 🎭 — access-control and permissions configuration most guarded 🔒
-- custom emoji IDs 😄 — brand asset references most cherished 🎨
-- template images 🖼️ — visual content IP most prized 💡
+- guild IDs
+- channel IDs
+- role IDs
+- custom emoji IDs
+- template images
 
-To onboard this solution 💼 into a new server environment most noble 🔧, thou shouldst commence with a thorough audit 🔍 of [index.js](index.js) and the service modules in [lib](/lib) 📁.
+If you want to reuse it in another server, start by reviewing [index.js](index.js) and the files in [lib](/lib).
