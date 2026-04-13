@@ -5,10 +5,10 @@ A small Discord bot for the "i think i have" server. It mixes community moderati
 ## What it does
 
 - 🏷️ Renames the server when a message matches the "i think i have..." pattern.
-- 💬 Replies to "is this true?" style messages in English and Chinese.
+- ❓ Replies to "is this true?" style messages in English and Chinese.
 - 🇨🇳 Deletes non-Chinese or suspicious ASCII-art-style messages in the dedicated Chinese channel.
 - 😊 Enforces positive sentiment in one specific channel.
-- 💬 Replies to keyword matches like `guh`.
+- 📢 Replies to keyword matches like `guh`.
 - ♟️ Randomly reacts with chess-themed custom emoji.
 - 🖼️ Provides `/gpa` and `/glup` slash commands that render text onto meme templates.
 
