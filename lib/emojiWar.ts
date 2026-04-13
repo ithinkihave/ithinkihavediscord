@@ -46,6 +46,13 @@ export class WarBoard<Size extends number> {
     return this.#getUniquePieceCount() == 1;
   }
 
+  getWinner(): undefined | string {
+    if (this.gameFinished()) {
+      return this.piece_mapping[this.board[0][0]];
+    }
+    return undefined;
+  }
+
   #updateEdge() {
     const [row, col, dy, dx] = this.#getRandomEdge();
     const [a, b] = [this.board[row]?.[col], this.board[row + dy]?.[col + dx]]
@@ -147,4 +154,10 @@ export async function handleEmojiWarCommand(interaction: EmojiWarCommandInteract
     game.updateGame();
     await sleep(500);
   }
+  const winner = game.getWinner();
+  if (winner === undefined) {
+    throw new Error("The winner doesn't exist");
+  }
+  const message = prefix + game.toString() + `\n# The winner of the war was ${winner}!`
+  interaction.editReply(message);
 }
