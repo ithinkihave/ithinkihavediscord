@@ -1,4 +1,5 @@
-import { count } from "node:console";
+import { AttachmentBuilder, MessagePayload, SlashCommandBuilder } from "discord.js";
+import type { CommandName, NamedChatInputCommandInteraction } from "./commandTypes.ts";
 
 type WarPiece = number & { readonly __brand: "WarPiece" }
 type Array<T, N extends number, Acc extends T[] = []> = (Acc["length"] extends N ? Acc : Array<T, N, [...Acc, T]>) & T[];
@@ -36,6 +37,11 @@ export class WarBoard<Size extends number> {
     for (let i = 0; i < this.size * this.size * BOARD_UPDATE_PERCENT / 100; i++) {
       this.#updateEdge();
     }
+  }
+
+  gameFinished(): boolean {
+    const first = this.board[0][0];
+    return this.#getPieceCount(first) == this.size * this.size;
   }
 
   #updateEdge() {
@@ -77,4 +83,36 @@ export class WarBoard<Size extends number> {
 
 function array<T, Size extends number>(length: Size, value: (idx: number) => T): Array<T, Size> {
   return Array.from({ length }, (_, idx) => value(idx)) as Array<T, Size>;
+}
+
+
+export const EMOJI_WAR_COMMAND_NAME = "emoji-war" satisfies CommandName;
+
+export const emojiWarCommandData = new SlashCommandBuilder()
+  .setName(EMOJI_WAR_COMMAND_NAME)
+  .setDescription("Start an emoji war")
+  .addStringOption((option) =>
+    option
+      .setName("emojis")
+      .setDescription("CSV of the emojis in the war")
+      .setRequired(true),
+  )
+  .toJSON();
+
+type EmojiWarCommandInteraction = NamedChatInputCommandInteraction<typeof EMOJI_WAR_COMMAND_NAME>;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export async function handleEmojiWarCommand(interaction: EmojiWarCommandInteraction) {
+  const emojis = interaction.options.getString("emojis", true).trim().split(",");
+  const game = new WarBoard(8, emojis);
+
+  await interaction.deferReply();
+  while (!game.gameFinished()) {
+    interaction.editReply(game.toString());
+    game.updateGame();
+    await sleep(500);
+  }
 }
