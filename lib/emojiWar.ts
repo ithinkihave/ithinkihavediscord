@@ -1,4 +1,4 @@
-import { AttachmentBuilder, MessagePayload, SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder } from "discord.js";
 import type { CommandName, NamedChatInputCommandInteraction } from "./commandTypes.ts";
 
 type WarPiece = number & { readonly __brand: "WarPiece" }
