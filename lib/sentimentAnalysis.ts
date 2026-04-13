@@ -1,10 +1,11 @@
 import natural from "natural";
+import type { DiscordMessage } from "./messageTypes.ts";
 const tokenizer = new natural.WordTokenizer();
 const SentimentAnalyzer = natural.SentimentAnalyzer;
 const stemmer = natural.PorterStemmer;
 const analyzer = new SentimentAnalyzer("English", stemmer, "afinn");
 
-export function analyzeSentiment(text) {
+export function analyzeSentiment(text: string): number {
   const tokens = tokenizer.tokenize(text);
   const sentimentScore = analyzer.getSentiment(tokens);
   return sentimentScore;
@@ -20,13 +21,13 @@ export function analyzeSentiment(text) {
 const happyChannelId = "1489797249734148188";
 const sentimentThreshold = 0.2;
 
-function shouldEnsureHappy(message) {
+function shouldEnsureHappy(message: DiscordMessage): boolean {
   return message.channel?.id === happyChannelId;
 }
 
-export async function ensureHappy(message) {
+export async function ensureHappy(message: DiscordMessage): Promise<boolean> {
   if (!shouldEnsureHappy(message)) {
-    return;
+    return false;
   }
 
   const sentimentScore = analyzeSentiment(message.content ?? "");
@@ -37,7 +38,8 @@ export async function ensureHappy(message) {
 
   if (sentimentScore < sentimentThreshold) {
     await message.delete();
-  } else {
-    await message.react("1489800033359364259");
+    return true;
   }
+  await message.react("1489800033359364259");
+  return false;
 }

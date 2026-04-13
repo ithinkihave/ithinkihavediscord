@@ -2,7 +2,23 @@ import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import sharp from "sharp";
 
-export function normalizeBox(box) {
+type NormalBox = {
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+};
+
+type PointBox = {
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+};
+
+type BoxLike = Partial<PointBox> | Partial<NormalBox>;
+
+export function normalizeBox(box: BoxLike): NormalBox {
   if (!box) {
     throw new Error("missing box definition");
   }
@@ -21,6 +37,8 @@ export function normalizeBox(box) {
     };
   }
 
+  // TS is dumb and infers box as Partial<PointBox> here because we did property checks earlier
+  box = box as Partial<NormalBox>;
   return {
     x: Math.round(Number(box.x ?? 0)),
     y: Math.round(Number(box.y ?? 0)),
@@ -29,17 +47,17 @@ export function normalizeBox(box) {
   };
 }
 
-export function estimateTextWidth(text, fontSize) {
+export function estimateTextWidth(text: string, fontSize: number): number {
   return Array.from(String(text ?? "")).reduce((width, character) => {
     width += estimateCharacterWidth(character, fontSize);
     return width;
   }, 0);
 }
 
-export function wrapText(text, maxWidth, fontSize) {
+export function wrapText(text: string, maxWidth: number, fontSize: number): string[] {
   const normalized = String(text ?? "").replace(/\r\n/g, "\n");
   const paragraphs = normalized.split("\n");
-  const wrappedLines = [];
+  const wrappedLines: string[] = [];
 
   for (const paragraph of paragraphs) {
     if (!paragraph.trim()) {
@@ -55,11 +73,11 @@ export function wrapText(text, maxWidth, fontSize) {
         ? splitToken(token, maxWidth, fontSize)
         : [token];
 
-      for (let index = 0; index < pieces.length; index += 1) {
-        const piece = pieces[index];
-        const isContinuation = index > 0;
+      let isContinuation = false;
+      for (const piece of pieces) {
         if (!currentLine) {
           currentLine = piece;
+          isContinuation = true;
           continue;
         }
 
@@ -72,6 +90,8 @@ export function wrapText(text, maxWidth, fontSize) {
           wrappedLines.push(currentLine);
           currentLine = piece;
         }
+
+        isContinuation = true;
       }
     }
 
@@ -83,7 +103,16 @@ export function wrapText(text, maxWidth, fontSize) {
   return wrappedLines.length > 0 ? wrappedLines : [""];
 }
 
-export function fitTextToBox(text, box, options = {}) {
+type BoxedLayout = Layout & {
+  box: NormalBox,
+  padding: number,
+  minFontSize?: number,
+  maxFontSize?: number,
+  lineGap: number,
+  horizontalSquish?: number,
+};
+
+export function fitTextToBox(text: string, box: BoxLike, options: Partial<BoxedLayout> = {}): BoxedLayout {
   const normalizedBox = normalizeBox(box);
   const padding = Number(options.padding ?? 8);
   const minFontSize = Number(options.minFontSize ?? 12);
@@ -94,7 +123,7 @@ export function fitTextToBox(text, box, options = {}) {
   const innerWidth = Math.max(0, normalizedBox.width - padding * 2);
   const innerHeight = Math.max(0, normalizedBox.height - padding * 2);
 
-  let bestLayout = null;
+  let bestLayout: Layout | null = null;
   let low = minFontSize;
   let high = maxFontSize;
 
@@ -131,7 +160,9 @@ export function fitTextToBox(text, box, options = {}) {
   };
 }
 
-export async function loadImageBuffer(source) {
+type ImageSource = Buffer | Uint8Array | string;
+
+export async function loadImageBuffer(source: ImageSource): Promise<Buffer> {
   if (!source) {
     throw new Error("missing image source");
   }
@@ -160,7 +191,7 @@ export async function loadImageBuffer(source) {
   throw new Error(`unsupported image source: ${String(source)}`);
 }
 
-export async function renderTextOnImage({ source, text, box, options = {} }) {
+export async function renderTextOnImage({ source, text, box, options = {} }: RenderTextParams) {
   const imageBuffer = await loadImageBuffer(source);
   const baseImage = sharp(imageBuffer);
   const metadata = await baseImage.metadata();
@@ -183,7 +214,43 @@ export async function renderTextOnImage({ source, text, box, options = {} }) {
   };
 }
 
-export async function renderSingleLineTextOnImage({ source, text, box, options = {} }) {
+type TextAnchor = "start" | "middle";
+
+type RenderedSingleLineText = {
+  buffer: Buffer,
+  layout: {
+    box: NormalBox,
+    fontSize: number,
+    horizontalSquish: number,
+    textAnchor: TextAnchor,
+  },
+}
+
+// If we do this properly we get a union too big to represent
+type HexColor = `#${string}`;
+
+type RenderOptions = BoxedLayout & {
+  paddingY: number,
+  minFontSize: number,
+  maxFontSize: number,
+  horizontalSquish: number,
+  textAnchor: TextAnchor,
+  fontWeight: number,
+  fill: HexColor,
+  stroke: HexColor,
+  strokeWidthRatio: number,
+  fontFamily: string,
+  box: NormalBox,
+};
+
+type RenderTextParams = {
+  source: ImageSource,
+  text: string,
+  box: BoxLike,
+  options?: Partial<RenderOptions>,
+};
+
+export async function renderSingleLineTextOnImage({ source, text, box, options = {} }: RenderTextParams): Promise<RenderedSingleLineText> {
   const imageBuffer = await loadImageBuffer(source);
   const baseImage = sharp(imageBuffer);
   const metadata = await baseImage.metadata();
@@ -255,7 +322,12 @@ export async function renderSingleLineTextOnImage({ source, text, box, options =
   };
 }
 
-export async function addFakeCompressionArtifacts(buffer, options = {}) {
+type CompressionOptions = {
+  quality: number,
+  chromaSubsampling: string
+};
+
+export async function addFakeCompressionArtifacts(buffer: Buffer, options: Partial<CompressionOptions> = {}) {
   const quality = Number(options.quality ?? 38);
   const chromaSubsampling = options.chromaSubsampling ?? "4:2:0";
 
@@ -271,7 +343,7 @@ export async function addFakeCompressionArtifacts(buffer, options = {}) {
   return sharp(jpegBuffer).png().toBuffer();
 }
 
-export async function toSingleFrameGif(buffer) {
+export async function toSingleFrameGif(buffer: Buffer) {
   return sharp(buffer)
     .gif({
       reuse: true,
@@ -280,7 +352,7 @@ export async function toSingleFrameGif(buffer) {
     .toBuffer();
 }
 
-function buildOverlaySvg(width, height, layout, options) {
+function buildOverlaySvg(width: number, height: number, layout: BoxedLayout, options: Partial<RenderOptions>) {
   const fill = options.fill ?? "#111111";
   const stroke = options.stroke ?? "#ffffff";
   const strokeWidthRatio = Number(options.strokeWidthRatio ?? 0.08);
@@ -328,7 +400,18 @@ function buildOverlaySvg(width, height, layout, options) {
   `;
 }
 
-function buildLayoutForFontSize(text, innerWidth, innerHeight, fontSize, options) {
+type Layout = {
+  fontSize: number,
+  lineHeight: number,
+  lines: string[],
+  blockWidth: number,
+  blockHeight: number,
+  innerWidth: number,
+  innerHeight: number,
+  fits: boolean,
+};
+
+function buildLayoutForFontSize(text: string, innerWidth: number, innerHeight: number, fontSize: number, options: Partial<BoxedLayout>): Layout {
   const horizontalSquish = Number(options.horizontalSquish ?? 1);
   const lineGap = Number(options.lineGap ?? 1.08);
   const wrappedLines = wrapText(text, innerWidth / horizontalSquish, fontSize);
@@ -350,8 +433,8 @@ function buildLayoutForFontSize(text, innerWidth, innerHeight, fontSize, options
   };
 }
 
-function splitToken(token, maxWidth, fontSize) {
-  const pieces = [];
+function splitToken(token: string, maxWidth: number, fontSize: number): string[] {
+  const pieces: string[] = [];
   let current = "";
 
   for (const character of Array.from(token)) {
@@ -373,7 +456,7 @@ function splitToken(token, maxWidth, fontSize) {
   return pieces;
 }
 
-function estimateCharacterWidth(character, fontSize) {
+function estimateCharacterWidth(character: string, fontSize: number): number {
   if (/\s/u.test(character)) {
     return fontSize * 0.33;
   }
@@ -409,7 +492,7 @@ function estimateCharacterWidth(character, fontSize) {
   return fontSize * 0.55;
 }
 
-function escapeXml(text) {
+function escapeXml(text: string): string {
   return String(text ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")

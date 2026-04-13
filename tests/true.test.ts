@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
-import { shouldReplyToTruthQuestion } from "../lib/truthCheck.js";
+import { shouldReplyToTruthQuestion } from "../lib/truthCheck.ts";
 
 describe("True gifs", () => {
   it("Should answer questions", () => {

@@ -2,10 +2,11 @@
   "name": "ithinkihave",
   "version": "1.0.0",
   "type": "module",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "start": "node index.js",
-    "test": "node --test"
+    "start": "tsx index.ts",
+    "test": "node --import tsx/esm --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit"
   },
   "repository": "https://github.com/InvalidSE/ithinkihave.git",
   "author": "Taine Reader <taine.reader@gmail.com>",
@@ -13,13 +14,12 @@
   "dependencies": {
     "discord.js": "^14.16.2",
     "dotenv": "^16.4.5",
-    "express": "^4.21.1",
-    "minecraft-status": "^1.1.0",
     "natural": "^8.1.1",
-    "node-fetch": "^3.3.2",
-    "node-schedule": "^2.1.1",
-    "request": "^2.88.2",
     "sharp": "^0.34.5",
-    "spotify-web-api-node": "^5.0.2"
+    "tsx": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.2",
+    "typescript": "^6.0.2"
   }
 }

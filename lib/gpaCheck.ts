@@ -1,5 +1,6 @@
 import { AttachmentBuilder, SlashCommandBuilder } from "discord.js";
-import { renderSingleLineTextOnImage, toSingleFrameGif } from "./imageText.js";
+import type { CommandName, NamedChatInputCommandInteraction } from "./commandTypes.ts";
+import { renderSingleLineTextOnImage, toSingleFrameGif } from "./imageText.ts";
 
 const DEFAULT_GPA_TEMPLATE = new URL("../img/gpa.png", import.meta.url).pathname;
 
@@ -18,8 +19,10 @@ const GPA_TEXT_BOXES = [
   },
 ];
 
+export const GPA_COMMAND_NAME = "gpa" satisfies CommandName;
+
 export const gpaCommandData = new SlashCommandBuilder()
-  .setName("gpa")
+  .setName(GPA_COMMAND_NAME)
   .setDescription("Render text onto the GPA template")
   .addStringOption((option) =>
     option
@@ -29,7 +32,9 @@ export const gpaCommandData = new SlashCommandBuilder()
   )
   .toJSON();
 
-export async function handleGpaCommand(interaction) {
+type GpaCommandInteraction = NamedChatInputCommandInteraction<typeof GPA_COMMAND_NAME>;
+
+export async function handleGpaCommand(interaction: GpaCommandInteraction) {
   const text = interaction.options.getString("text", true).trim();
 
   if (!text) {
@@ -39,7 +44,7 @@ export async function handleGpaCommand(interaction) {
 
   await interaction.deferReply();
 
-  let currentBuffer = null;
+  let currentBuffer: Buffer | null = null;
 
   for (const box of GPA_TEXT_BOXES) {
     const { buffer } = await renderSingleLineTextOnImage({
@@ -60,6 +65,10 @@ export async function handleGpaCommand(interaction) {
     });
 
     currentBuffer = buffer;
+  }
+
+  if (!currentBuffer) {
+    throw new Error("GPA render did not produce an image buffer.");
   }
 
   const gifBuffer = await toSingleFrameGif(currentBuffer);
