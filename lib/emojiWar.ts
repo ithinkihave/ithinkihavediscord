@@ -40,6 +40,7 @@ export class WarBoard<Size extends number> {
     for (let i = 0; i < this.size * this.size * BOARD_UPDATE_PERCENT / 100; i++) {
       this.#updateEdge();
     }
+    this.turns_played++;
   }
 
   gameFinished(): boolean {
