@@ -141,7 +141,7 @@ function sleep(ms: number): Promise<void> {
 }
 
 export async function handleEmojiWarCommand(interaction: EmojiWarCommandInteraction) {
-  const emojis = interaction.options.getString("emojis", true).trim().split(",").map(emoji => emoji.replace(/:.*:/, ""));
+  const emojis = interaction.options.getString("emojis", true).trim().split(",").map(emoji => emoji.replace(/:.*:/, ":_:"));
   const game = new WarBoard(8, emojis);
 
   const prefix = `Emoji war between: ${emojis.join(" - ")}\n`
