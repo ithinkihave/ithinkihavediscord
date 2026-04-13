@@ -2,9 +2,13 @@ type WarPiece = number & { readonly __brand: "WarPiece" }
 type Array<T, N extends number, Acc extends T[] = []> = (Acc["length"] extends N ? Acc : Array<T, N, [...Acc, T]>) & T[];
 type PieceMapping = { [piece: WarPiece]: string }
 
+const BOARD_BASE_PERCENT = 5;
+const BOARD_UPDATE_PERCENT = 20;
+
 export class WarBoard<Size extends number> {
   board: Array<Array<WarPiece, Size>, Size>;
   piece_mapping: PieceMapping;
+  size: Size;
 
   constructor(size: Size, pieces: string[]) {
     const board = array(size, (y) => array(size, (x) => {
@@ -15,6 +19,7 @@ export class WarBoard<Size extends number> {
     }
     ));
     this.board = board;
+    this.size = size;
     this.piece_mapping = pieces.reduce((acc: PieceMapping, val, i) => {
       acc[i as WarPiece] = val;
       return acc;
@@ -23,6 +28,48 @@ export class WarBoard<Size extends number> {
 
   toString(): string {
     return this.board.reduce((acc, val, _) => acc + val.reduce((acc, val, _) => acc + this.piece_mapping[val], "") + "\n", "");
+  }
+
+  updateGame() {
+    for (let i = 0; i < this.size * this.size * BOARD_UPDATE_PERCENT / 100; i++) {
+      this.#updateEdge();
+    }
+  }
+
+  #updateEdge() {
+    const size = this.board.length - 1;
+    const [row, col] = [Math.floor(Math.random() * size), Math.floor(Math.random() * size)];
+    const [dy, dx] = Math.random() > 0.5 ? [1, 0] : [0, 1];
+    const [a, b] = [this.board[row]?.[col], this.board[row + dy]?.[col + dx]]
+    if (a === undefined || b === undefined) {
+      throw new Error("Emoji war board is corrupted");
+    }
+    if (Math.random() < this.#getWinRate(a, b)) {
+      const board_row = this.board[row + dy];
+      if (board_row === undefined) {
+        throw new Error("impossible");
+      }
+      board_row[col + dx] = a;
+    } else {
+      const board_row = this.board[row];
+      if (board_row === undefined) {
+        throw new Error("impossible");
+      }
+      board_row[col] = b;
+    }
+  }
+
+  // rate that a wins against b
+  #getWinRate(a: WarPiece, b: WarPiece): number {
+    // we assume BOARD_BASE_PERCENT% of the board is each no matter what to prevent games from lasting too long
+    const as = this.#getPieceCount(a) + this.size * this.size * BOARD_BASE_PERCENT / 100;
+    const bs = this.#getPieceCount(b) + this.size * this.size * BOARD_BASE_PERCENT / 100;
+    // if there are few b then a is less likely to win
+    return (bs) / (as + bs)
+  }
+
+  #getPieceCount(piece: WarPiece) {
+    return this.board.reduce((acc, row, _) => acc + row.filter((piece) => piece == 0).reduce((acc, _, _i) => acc + 1, 0), 0);
   }
 }
 
