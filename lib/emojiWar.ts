@@ -14,8 +14,9 @@ export class WarBoard<Size extends number> {
   piece_mapping: PieceMapping;
   size: Size;
   turns_played: number;
+  #random: () => number;
 
-  constructor(size: Size, pieces: string[]) {
+  constructor(size: Size, pieces: string[], random: () => number = Math.random) {
     const board = array(size, (y) => array(size, (x) => {
       const [x2, y2] = [x - (size - 1) / 2, y - (size - 1) / 2];
       const theta = (Math.atan2(y2, x2) + Math.PI) % (2 * Math.PI);
@@ -26,6 +27,7 @@ export class WarBoard<Size extends number> {
     this.board = board;
     this.size = size;
     this.turns_played = 0;
+    this.#random = random;
     this.piece_mapping = pieces.reduce((acc: PieceMapping, val, i) => {
       acc[i as WarPiece] = val;
       return acc;
@@ -60,7 +62,7 @@ export class WarBoard<Size extends number> {
     if (a === undefined || b === undefined) {
       throw new Error("Emoji war board is corrupted");
     }
-    if (Math.random() < this.#getWinRate(a, b)) {
+    if (this.#random() < this.#getWinRate(a, b)) {
       const board_row = this.board[row + dy];
       if (board_row === undefined) {
         throw new Error("impossible");
@@ -92,13 +94,13 @@ export class WarBoard<Size extends number> {
   }
 
   #getRandomEdge(): [row: number, col: number, dy: number, dx: number] {
-    const [dy, dx] = Math.random() > 0.5 ? [1, 0] : [0, 1];
+    const [dy, dx] = this.#random() > 0.5 ? [1, 0] : [0, 1];
     // When dy=1 the edge spans row -> row+1, so row must be at most size-2.
     // When dx=1 the edge spans col -> col+1, so col must be at most size-2.
     const rowMax = this.size - dy;
     const colMax = this.size - dx;
-    const row = Math.floor(Math.random() * rowMax);
-    const col = Math.floor(Math.random() * colMax);
+    const row = Math.floor(this.#random() * rowMax);
+    const col = Math.floor(this.#random() * colMax);
     return [row, col, dy, dx];
   }
 

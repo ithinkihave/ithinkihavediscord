@@ -70,7 +70,7 @@ client.on("interactionCreate", async (interaction) => {
   } catch (error) {
     console.error(`[bot] error handling /${interaction.commandName}`, error);
 
-    const message = "Something went wrong while rendering that image.";
+    const message = "Something went wrong.";
     if (interaction.deferred || interaction.replied) {
       try {
         await interaction.editReply({ content: message, attachments: [] });
