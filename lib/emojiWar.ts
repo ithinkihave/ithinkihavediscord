@@ -5,7 +5,7 @@ type WarPiece = number & { readonly __brand: "WarPiece" }
 type Array<T, N extends number, Acc extends T[] = []> = (Acc["length"] extends N ? Acc : Array<T, N, [...Acc, T]>) & T[];
 type PieceMapping = { [piece: WarPiece]: string }
 
-const BOARD_BASE_PERCENT = 50;
+const BOARD_BASE_PERCENT = 100;
 const BOARD_UPDATE_PERCENT = 20;
 const T100_UNFAIRNESS_PERCENT = 10;
 
