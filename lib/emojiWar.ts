@@ -33,7 +33,7 @@ export class WarBoard<Size extends number> {
   };
 
   toString(): string {
-    return this.board.reduce((acc, val, _) => acc + val.reduce((acc, val, _) => acc + this.piece_mapping[val], "") + "\n", "");
+    return this.board.reduce((acc, val) => acc + val.reduce((acc, val) => acc + this.piece_mapping[val], "") + "\n", "");
   }
 
   updateGame() {
