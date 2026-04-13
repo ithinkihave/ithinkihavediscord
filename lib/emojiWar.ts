@@ -109,9 +109,10 @@ export async function handleEmojiWarCommand(interaction: EmojiWarCommandInteract
   const emojis = interaction.options.getString("emojis", true).trim().split(",");
   const game = new WarBoard(8, emojis);
 
+  const prefix = `Emoji war between: ${emojis.join(" - ")}\n`
   await interaction.deferReply();
   while (!game.gameFinished()) {
-    interaction.editReply(game.toString());
+    interaction.editReply(prefix + game.toString());
     game.updateGame();
     await sleep(500);
   }
