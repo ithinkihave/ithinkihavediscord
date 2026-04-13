@@ -1,4 +1,4 @@
-import type { BotMessage } from "./messageTypes.ts";
+import type { DiscordMessage } from "./messageTypes.ts";
 
 const REACT_PROBABILITY = 1 / 100;
 const REACTIONS = [
@@ -18,7 +18,7 @@ function shouldReact(): boolean {
   return Math.random() <= REACT_PROBABILITY;
 }
 
-export async function handlePossibleChessMessage(message: BotMessage): Promise<void> {
+export async function handlePossibleChessMessage(message: DiscordMessage): Promise<void> {
   if (shouldReact()) {
     const reaction = REACTIONS[Math.floor(Math.random() * REACTIONS.length)];
     if (!reaction) {

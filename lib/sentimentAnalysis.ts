@@ -1,5 +1,5 @@
 import natural from "natural";
-import type { BotMessage } from "./messageTypes.ts";
+import type { DiscordMessage } from "./messageTypes.ts";
 const tokenizer = new natural.WordTokenizer();
 const SentimentAnalyzer = natural.SentimentAnalyzer;
 const stemmer = natural.PorterStemmer;
@@ -21,11 +21,11 @@ export function analyzeSentiment(text: string): number {
 const happyChannelId = "1489797249734148188";
 const sentimentThreshold = 0.2;
 
-function shouldEnsureHappy(message: BotMessage): boolean {
+function shouldEnsureHappy(message: DiscordMessage): boolean {
   return message.channel?.id === happyChannelId;
 }
 
-export async function ensureHappy(message: BotMessage): Promise<boolean> {
+export async function ensureHappy(message: DiscordMessage): Promise<boolean> {
   if (!shouldEnsureHappy(message)) {
     return false;
   }

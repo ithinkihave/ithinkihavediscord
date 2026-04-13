@@ -1,8 +1,8 @@
-import type { BotMessage } from "./messageTypes.ts";
+import type { DiscordMessage } from "./messageTypes.ts";
 
 export type MessageHandler<T> = {
   context: string,
-  handler: (message: BotMessage) => Promise<T>,
+  handler: (message: DiscordMessage) => Promise<T>,
   stopOnResult?: true,
 };
 
@@ -11,14 +11,14 @@ export type HandlerResult<T> = {
   result: T,
 };
 
-export type RunMessageHandler<T extends MessageHandler<any>[]> = (message: BotMessage,
+export type RunMessageHandler<T extends MessageHandler<any>[]> = (message: DiscordMessage,
   context: string,
-  handler: (message: BotMessage) => Promise<MessageHandlerReturnTypes<T>>
+  handler: (message: DiscordMessage) => Promise<MessageHandlerReturnTypes<T>>
 ) => Promise<HandlerResult<MessageHandlerReturnTypes<T> | null>>;
 
 export type MessageHandlerReturnTypes<T extends MessageHandler<any>[]> = Awaited<ReturnType<T[number]["handler"]>>;
 export async function runMessageHandlersInOrder<T extends MessageHandler<any>[]>(
-  message: BotMessage,
+  message: DiscordMessage,
   handlers: T,
   runMessageHandler: RunMessageHandler<T>):
   Promise<HandlerResult<MessageHandlerReturnTypes<T> | null>> {

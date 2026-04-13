@@ -1,4 +1,4 @@
-import type { BotMessage } from "../../lib/messageTypes.ts";
+import type { DiscordMessage } from "../../lib/messageTypes.ts";
 
 export type MockMessageOptions = {
   content?: string;
@@ -7,7 +7,7 @@ export type MockMessageOptions = {
   onReact?: (emoji: string) => void | Promise<void>;
 };
 
-export function createMockMessage(options: MockMessageOptions = {}): BotMessage {
+export function createMockMessage(options: MockMessageOptions = {}): DiscordMessage {
   return {
     content: options.content ?? "hello",
     channel: { id: options.channelId ?? "test-channel" },
@@ -17,5 +17,5 @@ export function createMockMessage(options: MockMessageOptions = {}): BotMessage 
     async react(emoji: string) {
       await options.onReact?.(emoji);
     },
-  } as unknown as BotMessage;
+  } as unknown as DiscordMessage;
 }

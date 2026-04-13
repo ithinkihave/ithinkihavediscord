@@ -6,13 +6,13 @@ import { handleServerRename } from "./serverRename.ts";
 import { ensureHappy } from "./sentimentAnalysis.ts";
 import { handlePossibleChessMessage } from "./botChess.ts";
 import { type HandlerResult, type MessageHandler, type MessageHandlerReturnTypes, runMessageHandlersInOrder } from "./messagePipeline.ts";
-import type { BotMessage, FullBotMessage } from "./messageTypes.ts";
+import type { DiscordMessage, FullDiscordMessage } from "./messageTypes.ts";
 
 export const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
 const CLANKER_ROLE_ID = "1435481760199610511";
 const ERROR_IMG = "https://cdn.discordapp.com/attachments/1487372867153690664/1487372867350958221/IMG-20260328-WA0017.png";
 
-export async function handleMessage<Event extends keyof ClientEvents>(message: BotMessage, eventType: Event) {
+export async function handleMessage<Event extends keyof ClientEvents>(message: DiscordMessage, eventType: Event) {
   logMessage(message, eventType);
 
   const handlerCheck = await runMessageHandlersInOrder(
@@ -54,14 +54,14 @@ export async function handleMessage<Event extends keyof ClientEvents>(message: B
 }
 
 export function isFullMessage<InGuild extends boolean = boolean>(
-  message: BotMessage<InGuild>
-): message is FullBotMessage<InGuild> {
+  message: DiscordMessage<InGuild>
+): message is FullDiscordMessage<InGuild> {
   return !message.partial;
 }
 
 export async function hydrateMessage<InGuild extends boolean = boolean>(
-  message: BotMessage<InGuild>
-): Promise<FullBotMessage<InGuild> | null> {
+  message: DiscordMessage<InGuild>
+): Promise<FullDiscordMessage<InGuild> | null> {
   if (isFullMessage(message)) {
     return message;
   }
@@ -74,7 +74,7 @@ export async function hydrateMessage<InGuild extends boolean = boolean>(
   }
 }
 
-export async function shouldIgnoreMessage(message: BotMessage, botUserId: string | undefined): Promise<boolean> {
+export async function shouldIgnoreMessage(message: DiscordMessage, botUserId: string | undefined): Promise<boolean> {
   if (!message?.author || message.author.id === botUserId) {
     return true;
   }
@@ -96,14 +96,14 @@ export async function shouldIgnoreMessage(message: BotMessage, botUserId: string
   return member?.roles?.cache?.has(CLANKER_ROLE_ID) ?? false;
 }
 
-export function getNormalizedContent(message: BotMessage): string {
+export function getNormalizedContent(message: DiscordMessage): string {
   return (message?.content ?? "").toLowerCase();
 }
 
 export async function runMessageHandler<T extends MessageHandler<any>[]>(
-  message: BotMessage,
+  message: DiscordMessage,
   context: string,
-  handler: (message: BotMessage) => Promise<MessageHandlerReturnTypes<T>>
+  handler: (message: DiscordMessage) => Promise<MessageHandlerReturnTypes<T>>
 ): Promise<HandlerResult<MessageHandlerReturnTypes<T> | null>> {
   try {
     return {
@@ -119,7 +119,7 @@ export async function runMessageHandler<T extends MessageHandler<any>[]>(
   }
 }
 
-async function reportMessageError(message: BotMessage, context: string, error: unknown) {
+async function reportMessageError(message: DiscordMessage, context: string, error: unknown) {
   console.error(`[bot] ${context}`, error);
 
   if (typeof message?.channel?.send !== "function") {
@@ -133,7 +133,7 @@ async function reportMessageError(message: BotMessage, context: string, error: u
   }
 }
 
-export function logMessage<Event extends keyof ClientEvents>(message: BotMessage, eventType: Event) {
+export function logMessage<Event extends keyof ClientEvents>(message: DiscordMessage, eventType: Event) {
   if (message.guild?.id === ITHINKIHAVE_SERVER_ID) {
     const prefix = eventType === "messageUpdate" ? "[edited] " : "";
     console.log(`${prefix}[${message.author?.tag}] ${message.content}`);

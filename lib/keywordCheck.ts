@@ -1,4 +1,4 @@
-import type { BotMessage } from "./messageTypes.ts";
+import type { DiscordMessage } from "./messageTypes.ts";
 
 type Responses = {
   key: string,
@@ -18,7 +18,7 @@ export function getResponses(text: string): string[] {
     .filter((response): response is string => response !== undefined);
 }
 
-export async function handleKeywords(message: BotMessage): Promise<void> {
+export async function handleKeywords(message: DiscordMessage): Promise<void> {
   const content = message?.content ?? "";
 
   const messageResponses = getResponses(content);

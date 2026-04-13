@@ -1,6 +1,6 @@
 import trueresponses from "../res/true.json" with { type: "json" };
 import falseresponses from "../res/false.json" with { type: "json" };
-import type { BotMessage } from "./messageTypes.ts";
+import type { DiscordMessage } from "./messageTypes.ts";
 
 const TRUTH_CHECK_PATTERNS = [
   /\bis (this|that|it) (?:(?:actually|really) )?true\b/,
@@ -16,7 +16,7 @@ export function shouldReplyToTruthQuestion(text: string): boolean {
   return TRUTH_CHECK_PATTERNS.some((pattern) => pattern.test(content));
 }
 
-async function replyToReferencedMessage(message: BotMessage, response: string) {
+async function replyToReferencedMessage(message: DiscordMessage, response: string) {
   if (!message?.reference?.messageId) {
     return false;
   }
@@ -31,7 +31,7 @@ async function replyToReferencedMessage(message: BotMessage, response: string) {
   }
 }
 
-function isOutsideTruthCheckChannel(message: BotMessage): boolean {
+function isOutsideTruthCheckChannel(message: DiscordMessage): boolean {
   if (!message.guild || !TRUTH_CHECK_RESTRICTED_GUILD_IDS.has(message.guild?.id)) {
     return false;
   }
@@ -44,7 +44,7 @@ function isOutsideTruthCheckChannel(message: BotMessage): boolean {
   return (message.channel as {parent?: {name?: string}})?.parent?.name !== TRUTH_CHECK_CHANNEL_NAME;
 }
 
-export async function handleTruthQuestion(message: BotMessage): Promise<void> {
+export async function handleTruthQuestion(message: DiscordMessage): Promise<void> {
   if (!shouldReplyToTruthQuestion(message?.content ?? "")) return;
   if (isOutsideTruthCheckChannel(message)) return;
 
