@@ -1,3 +1,5 @@
+import { count } from "node:console";
+
 type WarPiece = number & { readonly __brand: "WarPiece" }
 type Array<T, N extends number, Acc extends T[] = []> = (Acc["length"] extends N ? Acc : Array<T, N, [...Acc, T]>) & T[];
 type PieceMapping = { [piece: WarPiece]: string }
@@ -68,8 +70,8 @@ export class WarBoard<Size extends number> {
     return (bs) / (as + bs)
   }
 
-  #getPieceCount(piece: WarPiece) {
-    return this.board.reduce((acc, row, _) => acc + row.filter((piece) => piece == 0).reduce((acc, _, _i) => acc + 1, 0), 0);
+  #getPieceCount(count_piece: WarPiece) {
+    return this.board.reduce((acc, row, _) => acc + row.filter((piece) => piece == count_piece).reduce((acc, _, _i) => acc + 1, 0), 0);
   }
 }
 
