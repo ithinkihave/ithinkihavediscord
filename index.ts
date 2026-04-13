@@ -2,13 +2,13 @@ import "dotenv/config.js";
 import { Client, GatewayIntentBits, type ChatInputCommandInteraction } from "discord.js";
 import { GPA_COMMAND_NAME, gpaCommandData, handleGpaCommand } from "./lib/gpaCheck.ts";
 import { GLUP_COMMAND_NAME, glupCommandData, handleGlupCommand } from "./lib/glupCheck.ts";
-import { handleNamedCommandInteraction } from "./lib/commandTypes.ts";
 import { handleMessage, hydrateMessage, shouldIgnoreMessage, getNormalizedContent, ITHINKIHAVE_SERVER_ID } from "./lib/messageHandler.ts";
 import { EMOJI_WAR_COMMAND_NAME, emojiWarCommandData, handleEmojiWarCommand } from "./lib/emojiWar.ts";
+import type { CommandName } from "./lib/commandTypes.ts";
 
 type CommandHandler = (interaction: ChatInputCommandInteraction) => Promise<void>;
 
-const commandHandlers = new Map<string, CommandHandler>([
+const commandHandlers = new Map<CommandName, CommandHandler>([
   [GPA_COMMAND_NAME, handleGpaCommand as CommandHandler],
   [GLUP_COMMAND_NAME, handleGlupCommand as CommandHandler],
   [EMOJI_WAR_COMMAND_NAME, handleEmojiWarCommand as CommandHandler],
@@ -61,11 +61,11 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   try {
-    await handleNamedCommandInteraction(interaction, [
-      { name: GPA_COMMAND_NAME, handler: handleGpaCommand, },
-      { name: GLUP_COMMAND_NAME, handler: handleGlupCommand },
-      { name: EMOJI_WAR_COMMAND_NAME, handler: handleEmojiWarCommand },
-    ])
+    // if it wasn't a CommandName we will just get undefined
+    const handler = commandHandlers.get(interaction.commandName as CommandName);
+    if (handler) {
+      await handler(interaction);
+    }
   } catch (error) {
     console.error(`[bot] error handling /${interaction.commandName}`, error);
 
