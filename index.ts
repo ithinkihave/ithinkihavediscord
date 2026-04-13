@@ -67,12 +67,16 @@ client.on("interactionCreate", async (interaction) => {
     if (interaction.deferred || interaction.replied) {
       try {
         await interaction.editReply({ content: message, attachments: [] });
-      } catch {} // ignore reply failures
+      } catch (e) {
+        console.error("[bot] failed to edit reply to error", e);
+      }
       return;
     }
     try {
       await interaction.reply({ content: message, ephemeral: true });
-    } catch {} // ignore reply failures
+    } catch (e) {
+      console.error("[bot] failed to reply with error", e);
+    }
   }
 });
 
