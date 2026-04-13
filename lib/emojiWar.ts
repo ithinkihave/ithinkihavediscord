@@ -91,7 +91,7 @@ export class WarBoard<Size extends number> {
     return factor * fair_winrate + (1 - factor) * unfair_winrate;
   }
 
-  #getRandomEdge(): [row: number, col: number, dx: number, dy: number] {
+  #getRandomEdge(): [row: number, col: number, dy: number, dx: number] {
     const [dy, dx] = Math.random() > 0.5 ? [1, 0] : [0, 1];
     // When dy=1 the edge spans row -> row+1, so row must be at most size-2.
     // When dx=1 the edge spans col -> col+1, so col must be at most size-2.
