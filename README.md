@@ -123,12 +123,12 @@ npm test
 
 Current tests cover:
 
-- ✅ truth-question matching
-- ✅ Chinese-channel filtering rules
-- ✅ keyword matching
-- ✅ server rename matching
-- ✅ sentiment analysis
-- ✅ image text layout helpers
+- 🔍 truth-question matching
+- 🇨🇳 Chinese-channel filtering rules
+- 🔑 keyword matching
+- 🏷️ server rename matching
+- 😊 sentiment analysis
+- 🖼️ image text layout helpers
 
 ## Configuration notes 📝
 
