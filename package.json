@@ -7,8 +7,8 @@
 		"start": "tsx index.ts",
 		"test": "node --import tsx/esm --test tests/*.test.ts",
 		"typecheck": "tsc --noEmit",
-		"formatcheck": "prettier --list-different \"**/*.ts\" | xargs -I{} bash -c 'diff --color -u {} <(prettier {})'",
-		"format": "npx prettier . --write"
+		"formatcheck": "prettier --check .",
+		"format": "prettier . --write"
 	},
 	"repository": "https://github.com/InvalidSE/ithinkihave.git",
 	"author": "Taine Reader <taine.reader@gmail.com>",
