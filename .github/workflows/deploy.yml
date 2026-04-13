@@ -32,7 +32,7 @@ jobs:
             img/
             res/
             lib/
-            index.js
+            index.ts
             package.json
             package-lock.json
             captain-definition

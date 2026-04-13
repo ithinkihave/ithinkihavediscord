@@ -1,5 +1,5 @@
 import { describe, it } from "node:test";
-import { getResponses } from "../lib/keywordCheck.js";
+import { getResponses } from "../lib/keywordCheck.ts";
 import { deepStrictEqual } from "node:assert";
 
 describe("Guh", () => {

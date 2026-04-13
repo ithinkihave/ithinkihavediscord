@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { shouldDeleteChineseChannelContent } from "../lib/chineseCheck.js";
+import { shouldDeleteChineseChannelContent } from "../lib/chineseCheck.ts";
 
 describe("No english", () => {
   it("Shouldn't allow english chars", () => {

@@ -1,5 +1,6 @@
 import trueresponses from "../res/true.json" with { type: "json" };
 import falseresponses from "../res/false.json" with { type: "json" };
+import type { DiscordMessage } from "./messageTypes.ts";
 
 const TRUTH_CHECK_PATTERNS = [
   /\bis (this|that|it) (?:(?:actually|really) )?true\b/,
@@ -10,12 +11,12 @@ const TRUTH_CHECK_PATTERNS = [
 const TRUTH_CHECK_CHANNEL_NAME = "is-this-true";
 const TRUTH_CHECK_RESTRICTED_GUILD_IDS = new Set(["1378307576416178176"]);
 
-export function shouldReplyToTruthQuestion(text) {
+export function shouldReplyToTruthQuestion(text: string): boolean {
   const content = text.toLowerCase().replace(/\s+/g, " ").trim();
   return TRUTH_CHECK_PATTERNS.some((pattern) => pattern.test(content));
 }
 
-async function replyToReferencedMessage(message, response) {
+async function replyToReferencedMessage(message: DiscordMessage, response: string) {
   if (!message?.reference?.messageId) {
     return false;
   }
@@ -30,25 +31,29 @@ async function replyToReferencedMessage(message, response) {
   }
 }
 
-function isOutsideTruthCheckChannel(message) {
-  if (!TRUTH_CHECK_RESTRICTED_GUILD_IDS.has(message.guild?.id)) {
+function isOutsideTruthCheckChannel(message: DiscordMessage): boolean {
+  if (!message.guild || !TRUTH_CHECK_RESTRICTED_GUILD_IDS.has(message.guild?.id)) {
     return false;
   }
 
-  if (message.channel?.name === TRUTH_CHECK_CHANNEL_NAME) {
+  // We can't get proper type safety here without runtime checks :/
+  if ((message.channel as {name?: string})?.name === TRUTH_CHECK_CHANNEL_NAME) {
     return false;
   }
 
-  return message.channel?.parent?.name !== TRUTH_CHECK_CHANNEL_NAME;
+  return (message.channel as {parent?: {name?: string}})?.parent?.name !== TRUTH_CHECK_CHANNEL_NAME;
 }
 
-export async function handleTruthQuestion(message) {
+export async function handleTruthQuestion(message: DiscordMessage): Promise<void> {
   if (!shouldReplyToTruthQuestion(message?.content ?? "")) return;
   if (isOutsideTruthCheckChannel(message)) return;
 
   const chance = Math.random();
   const source = chance < 0.5 ? trueresponses : falseresponses;
   const randomResponse = source[Math.floor(Math.random() * source.length)];
+  if (!randomResponse) {
+    return;
+  }
 
   const repliedToReference = await replyToReferencedMessage(message, randomResponse);
 
