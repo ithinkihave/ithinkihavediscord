@@ -5,13 +5,14 @@ type WarPiece = number & { readonly __brand: "WarPiece" }
 type Array<T, N extends number, Acc extends T[] = []> = (Acc["length"] extends N ? Acc : Array<T, N, [...Acc, T]>) & T[];
 type PieceMapping = { [piece: WarPiece]: string }
 
-const BOARD_BASE_PERCENT = 5;
+const BOARD_BASE_PERCENT = 20;
 const BOARD_UPDATE_PERCENT = 20;
 
 export class WarBoard<Size extends number> {
   board: Array<Array<WarPiece, Size>, Size>;
   piece_mapping: PieceMapping;
   size: Size;
+  num_pieces: number;
 
   constructor(size: Size, pieces: string[]) {
     const board = array(size, (y) => array(size, (x) => {
@@ -23,6 +24,7 @@ export class WarBoard<Size extends number> {
     ));
     this.board = board;
     this.size = size;
+    this.num_pieces = pieces.length;
     this.piece_mapping = pieces.reduce((acc: PieceMapping, val, i) => {
       acc[i as WarPiece] = val;
       return acc;
@@ -70,8 +72,8 @@ export class WarBoard<Size extends number> {
   // rate that a wins against b
   #getWinRate(a: WarPiece, b: WarPiece): number {
     // we assume BOARD_BASE_PERCENT% of the board is each no matter what to prevent games from lasting too long
-    const as = this.#getPieceCount(a) + this.size * this.size * BOARD_BASE_PERCENT / 100;
-    const bs = this.#getPieceCount(b) + this.size * this.size * BOARD_BASE_PERCENT / 100;
+    const as = this.#getPieceCount(a) + this.size * this.size * BOARD_BASE_PERCENT / 100 / this.num_pieces;
+    const bs = this.#getPieceCount(b) + this.size * this.size * BOARD_BASE_PERCENT / 100 / this.num_pieces;
     // if there are few b then a is less likely to win
     return (bs) / (as + bs)
   }
