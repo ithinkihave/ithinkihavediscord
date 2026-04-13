@@ -1,8 +1,8 @@
-import type { AnyPartialMessage } from "./messageTypes.ts";
+import type { BotMessage } from "./messageTypes.ts";
 
 export type MessageHandler<T> = {
   context: string,
-  handler: (message: AnyPartialMessage) => Promise<T>,
+  handler: (message: BotMessage) => Promise<T>,
   stopOnResult?: true,
 };
 
@@ -11,14 +11,14 @@ export type HandlerResult<T> = {
   result: T,
 };
 
-export type RunMessageHandler<T extends MessageHandler<any>[]> = (message: AnyPartialMessage,
+export type RunMessageHandler<T extends MessageHandler<any>[]> = (message: BotMessage,
   context: string,
-  handler: (message: AnyPartialMessage) => Promise<MessageHandlerReturnTypes<T>>
+  handler: (message: BotMessage) => Promise<MessageHandlerReturnTypes<T>>
 ) => Promise<HandlerResult<MessageHandlerReturnTypes<T> | null>>;
 
 export type MessageHandlerReturnTypes<T extends MessageHandler<any>[]> = Awaited<ReturnType<T[number]["handler"]>>;
 export async function runMessageHandlersInOrder<T extends MessageHandler<any>[]>(
-  message: AnyPartialMessage,
+  message: BotMessage,
   handlers: T,
   runMessageHandler: RunMessageHandler<T>):
   Promise<HandlerResult<MessageHandlerReturnTypes<T> | null>> {

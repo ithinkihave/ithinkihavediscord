@@ -4,8 +4,8 @@ import type {
   PartialMessage,
 } from "discord.js";
 
-export type AnyPartialMessage<InGuild extends boolean = boolean> =
+export type BotMessage<InGuild extends boolean = boolean> =
   OmitPartialGroupDMChannel<Message<InGuild> | PartialMessage<InGuild>>;
 
-export type AnyFullMessage<InGuild extends boolean = boolean> =
+export type FullBotMessage<InGuild extends boolean = boolean> =
   OmitPartialGroupDMChannel<Message<InGuild>>;

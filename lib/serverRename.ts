@@ -1,4 +1,4 @@
-import type { AnyPartialMessage } from "./messageTypes.ts";
+import type { BotMessage } from "./messageTypes.ts";
 
 const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
 const REQUIRED_RENAME_TERM_REGEX = /\baustin\b/;
@@ -25,7 +25,7 @@ export function shouldRenameServer(text: string): boolean {
   return false;
 }
 
-export async function handleServerRename(message: AnyPartialMessage): Promise<void> {
+export async function handleServerRename(message: BotMessage): Promise<void> {
   const text = (message?.content ?? "");
   if (!shouldRenameServer(text)) return;
 

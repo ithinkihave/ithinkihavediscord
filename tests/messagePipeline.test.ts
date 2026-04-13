@@ -5,11 +5,11 @@ import {
   type MessageHandler,
   type RunMessageHandler,
 } from "../lib/messagePipeline.ts";
-import type { AnyPartialMessage } from "../lib/messageTypes.ts";
+import { createMockMessage } from "./mocks/message.ts";
 
 describe("runMessageHandlersInOrder typed helper", () => {
   it("stops after a delete-capable handler reports it handled the message", async () => {
-    const message = { content: "hello" } as unknown as AnyPartialMessage;
+    const message = createMockMessage({ content: "hello" });
     const calls: string[] = [];
 
     const handlers: MessageHandler<boolean>[] = [
@@ -49,7 +49,7 @@ describe("runMessageHandlersInOrder typed helper", () => {
   });
 
   it("continues to later handlers when earlier handlers do not stop the pipeline", async () => {
-    const message = { content: "hello" } as unknown as AnyPartialMessage;
+    const message = createMockMessage({ content: "hello" });
     const calls: string[] = [];
 
     const handlers: MessageHandler<boolean | string>[] = [
@@ -87,7 +87,7 @@ describe("runMessageHandlersInOrder typed helper", () => {
   });
 
   it("stops when a handler reports an error", async () => {
-    const message = { content: "hello" } as unknown as AnyPartialMessage;
+    const message = createMockMessage({ content: "hello" });
     const calls: string[] = [];
 
     const handlers: MessageHandler<boolean>[] = [

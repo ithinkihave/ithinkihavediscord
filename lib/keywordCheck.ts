@@ -1,4 +1,4 @@
-import type { AnyPartialMessage } from "./messageTypes.ts";
+import type { BotMessage } from "./messageTypes.ts";
 
 type Responses = {
   key: string,
@@ -18,7 +18,7 @@ export function getResponses(text: string): string[] {
     .filter((response): response is string => response !== undefined);
 }
 
-export async function handleKeywords(message: AnyPartialMessage): Promise<void> {
+export async function handleKeywords(message: BotMessage): Promise<void> {
   const content = message?.content ?? "";
 
   const messageResponses = getResponses(content);

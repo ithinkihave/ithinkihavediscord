@@ -1,4 +1,4 @@
-import type { AnyPartialMessage } from "./messageTypes.ts";
+import type { BotMessage } from "./messageTypes.ts";
 
 const CHINESE_CHANNEL_ID = "1486174868054474762";
 const ALLOWED_CHINESE_CHANNEL_CHAR_REGEX =
@@ -14,7 +14,7 @@ const ASCII_ART_MIN_LINE_COUNT = 8;
 const ASCII_ART_MIN_LINE_WIDTH = 20;
 const ASCII_ART_MAX_LINE_LENGTH_DELTA = 4;
 
-function shouldDeleteDisallowedChineseChannelMessage(message: AnyPartialMessage): boolean {
+function shouldDeleteDisallowedChineseChannelMessage(message: BotMessage): boolean {
   if (message.channel?.id !== CHINESE_CHANNEL_ID) {
     return false;
   }
@@ -182,7 +182,7 @@ function isSuspiciousRepeatedCharacterArt(text: string): boolean {
       ASCII_ART_REPEATED_CHARACTER_RATIO_THRESHOLD;
 }
 
-export async function handleChineseChannelEnglishCheck(message: AnyPartialMessage): Promise<boolean> {
+export async function handleChineseChannelEnglishCheck(message: BotMessage): Promise<boolean> {
   if (!shouldDeleteDisallowedChineseChannelMessage(message)) {
     return false;
   }
