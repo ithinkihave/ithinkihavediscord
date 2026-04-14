@@ -59,7 +59,7 @@ export async function handleMessage<Event extends keyof ClientEvents>(
 			{
 				context: "error handling a slang reply",
 				handler: handleSlang,
-			}
+			},
 		],
 		runMessageHandler,
 	);
