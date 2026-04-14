@@ -1,47 +1,52 @@
 name: Build & Deploy
 
 on:
-  push:
-    branches: [ "main" ]
+    push:
+        branches: ["main"]
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
+    build-and-deploy:
+        runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [22.x]
+        strategy:
+            matrix:
+                node-version: [22.x]
 
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "npm"
-      - run: npm ci
-      - run: npm run build --if-present
-      - run: npm run test --if-present
+        steps:
+            - name: Check out repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+            - run: npm run build --if-present
+            - run: npm run test --if-present
 
-      - uses: a7ul/tar-action@v1.1.0
-        with:
-          command: c
-          cwd: "./"
-          files: |
-            img/
-            res/
-            lib/
-            index.ts
-            package.json
-            package-lock.json
-            captain-definition
-            yarn.lock
-          outPath: deploy.tar
+            - name: Generate version.json
+              run: echo "{\"commitCount\":\"$(git rev-list --count HEAD)\",\"commitHash\":\"$(git rev-parse --short HEAD)\"}" > version.json
 
-      - name: Deploy App to CapRover
-        uses: caprover/deploy-from-github@v1.0.1
-        with:
-          server: '${{ secrets.CAPROVER_SERVER }}'
-          app: '${{ secrets.APP_NAME }}'
-          token: '${{ secrets.APP_TOKEN }}'
+            - uses: a7ul/tar-action@v1.1.0
+              with:
+                  command: c
+                  cwd: "./"
+                  files: |
+                      img/
+                      res/
+                      lib/
+                      index.ts
+                      package.json
+                      package-lock.json
+                      captain-definition
+                      version.json
+                  outPath: deploy.tar
+
+            - name: Deploy App to CapRover
+              uses: caprover/deploy-from-github@v1.0.1
+              with:
+                  server: "${{ secrets.CAPROVER_SERVER }}"
+                  app: "${{ secrets.APP_NAME }}"
+                  token: "${{ secrets.APP_TOKEN }}"

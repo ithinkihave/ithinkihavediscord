@@ -6,14 +6,26 @@ import { handleTruthQuestion } from "./truthCheck.ts";
 import { handleServerRename } from "./serverRename.ts";
 import { ensureHappy } from "./sentimentAnalysis.ts";
 import { handlePossibleChessMessage } from "./botChess.ts";
-import { type HandlerResult, type MessageHandler, type MessageHandlerReturnTypes, runMessageHandlersInOrder } from "./messagePipeline.ts";
+import {
+	type HandlerResult,
+	type MessageHandler,
+	type MessageHandlerReturnTypes,
+	runMessageHandlersInOrder,
+} from "./messagePipeline.ts";
 import type { DiscordMessage, FullDiscordMessage } from "./messageTypes.ts";
 
 export const ITHINKIHAVE_SERVER_ID = config.server.ithinkihaveGuildId;
 const CLANKER_ROLE_ID = config.roles.clankerRoleId;
-const ERROR_IMG = "https://cdn.discordapp.com/attachments/1487372867153690664/1487372867350958221/IMG-20260328-WA0017.png";
 
-export async function handleMessage<Event extends keyof ClientEvents>(message: DiscordMessage, eventType: Event) {
+const ERROR_IMG =
+  "https://cdn.discordapp.com/attachments/1487372867153690664/1487372867350958221/IMG-20260328-WA0017.png";
+
+
+export async function handleMessage<Event extends keyof ClientEvents>(
+	message: DiscordMessage,
+	eventType: Event,
+) {
+
   logMessage(message, eventType);
 
   const handlerCheck = await runMessageHandlersInOrder(
@@ -55,88 +67,101 @@ export async function handleMessage<Event extends keyof ClientEvents>(message: D
 }
 
 export function isFullMessage<InGuild extends boolean = boolean>(
-  message: DiscordMessage<InGuild>
+	message: DiscordMessage<InGuild>,
 ): message is FullDiscordMessage<InGuild> {
-  return !message.partial;
+	return !message.partial;
 }
 
 export async function hydrateMessage<InGuild extends boolean = boolean>(
-  message: DiscordMessage<InGuild>
+	message: DiscordMessage<InGuild>,
 ): Promise<FullDiscordMessage<InGuild> | null> {
-  if (isFullMessage(message)) {
-    return message;
-  }
+	if (isFullMessage(message)) {
+		return message;
+	}
 
-  try {
-    return await message.fetch();
-  } catch (error) {
-    console.error("[bot] error fetching updated message", error);
-    return null;
-  }
+	try {
+		return await message.fetch();
+	} catch (error) {
+		console.error("[bot] error fetching updated message", error);
+		return null;
+	}
 }
 
-export async function shouldIgnoreMessage(message: DiscordMessage, botUserId: string | undefined): Promise<boolean> {
-  if (!message?.author || message.author.id === botUserId) {
-    return true;
-  }
+export async function shouldIgnoreMessage(
+	message: DiscordMessage,
+	botUserId: string | undefined,
+): Promise<boolean> {
+	if (!message?.author || message.author.id === botUserId) {
+		return true;
+	}
 
-  if (!message.guild) {
-    return false;
-  }
+	if (!message.guild) {
+		return false;
+	}
 
-  let member = message.member ?? null;
+	let member = message.member ?? null;
 
-  if (!member) {
-    try {
-      member = await message.guild.members.fetch(message.author.id);
-    } catch {
-      member = null;
-    }
-  }
+	if (!member) {
+		try {
+			member = await message.guild.members.fetch(message.author.id);
+		} catch {
+			member = null;
+		}
+	}
 
-  return member?.roles?.cache?.has(CLANKER_ROLE_ID) ?? false;
+	return member?.roles?.cache?.has(CLANKER_ROLE_ID) ?? false;
 }
 
 export function getNormalizedContent(message: DiscordMessage): string {
-  return (message?.content ?? "").toLowerCase();
+	return (message?.content ?? "").toLowerCase();
 }
 
 export async function runMessageHandler<T extends MessageHandler<any>[]>(
-  message: DiscordMessage,
-  context: string,
-  handler: (message: DiscordMessage) => Promise<MessageHandlerReturnTypes<T>>
+	message: DiscordMessage,
+	context: string,
+	handler: (message: DiscordMessage) => Promise<MessageHandlerReturnTypes<T>>,
 ): Promise<HandlerResult<MessageHandlerReturnTypes<T> | null>> {
-  try {
-    return {
-      ok: true,
-      result: await handler(message),
-    };
-  } catch (error) {
-    await reportMessageError(message, context, error);
-    return {
-      ok: false,
-      result: null,
-    };
-  }
+	try {
+		return {
+			ok: true,
+			result: await handler(message),
+		};
+	} catch (error) {
+		await reportMessageError(message, context, error);
+		return {
+			ok: false,
+			result: null,
+		};
+	}
 }
 
-async function reportMessageError(message: DiscordMessage, context: string, error: unknown) {
-  console.error(`[bot] ${context}`, error);
+async function reportMessageError(
+	message: DiscordMessage,
+	context: string,
+	error: unknown,
+) {
+	console.error(`[bot] ${context}`, error);
 
-  if (typeof message?.channel?.send !== "function") {
-    return;
-  }
+	if (typeof message?.channel?.send !== "function") {
+		return;
+	}
 
-  try {
-    await message.channel.send(ERROR_IMG);
-  } catch (sendError) {
-    console.error(`[bot] failed sending error image for ${context}`, sendError);
-  }
+	try {
+		await message.channel.send(ERROR_IMG);
+	} catch (sendError) {
+		console.error(
+			`[bot] failed sending error image for ${context}`,
+			sendError,
+		);
+	}
 }
 
-export function logMessage<Event extends keyof ClientEvents>(message: DiscordMessage, eventType: Event) {
-  if (message.guild?.id === ITHINKIHAVE_SERVER_ID) {
-    const prefix = eventType === "messageUpdate" ? "[edited] " : "";
-    console.log(`${prefix}[${message.author?.tag}] ${message.content}`);
-  }
+export function logMessage<Event extends keyof ClientEvents>(
+	message: DiscordMessage,
+	eventType: Event,
+) {
+	if (message.guild?.id === ITHINKIHAVE_SERVER_ID) {
+		const prefix = eventType === "messageUpdate" ? "[edited] " : "";
+		console.log(`${prefix}[${message.author?.tag}] ${message.content}`);
+	}
 }

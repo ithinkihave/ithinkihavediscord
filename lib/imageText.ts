@@ -3,290 +3,339 @@ import { readFile } from "node:fs/promises";
 import sharp from "sharp";
 
 type NormalBox = {
-  x: number,
-  y: number,
-  width: number,
-  height: number,
+	x: number;
+	y: number;
+	width: number;
+	height: number;
 };
 
 type PointBox = {
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number,
+	x1: number;
+	y1: number;
+	x2: number;
+	y2: number;
 };
 
 type BoxLike = Partial<PointBox> | Partial<NormalBox>;
 
 export function normalizeBox(box: BoxLike): NormalBox {
-  if (!box) {
-    throw new Error("missing box definition");
-  }
+	if (!box) {
+		throw new Error("missing box definition");
+	}
 
-  if ("x1" in box || "y1" in box || "x2" in box || "y2" in box) {
-    const x1 = Math.min(Number(box.x1 ?? 0), Number(box.x2 ?? 0));
-    const y1 = Math.min(Number(box.y1 ?? 0), Number(box.y2 ?? 0));
-    const x2 = Math.max(Number(box.x1 ?? 0), Number(box.x2 ?? 0));
-    const y2 = Math.max(Number(box.y1 ?? 0), Number(box.y2 ?? 0));
+	if ("x1" in box || "y1" in box || "x2" in box || "y2" in box) {
+		const x1 = Math.min(Number(box.x1 ?? 0), Number(box.x2 ?? 0));
+		const y1 = Math.min(Number(box.y1 ?? 0), Number(box.y2 ?? 0));
+		const x2 = Math.max(Number(box.x1 ?? 0), Number(box.x2 ?? 0));
+		const y2 = Math.max(Number(box.y1 ?? 0), Number(box.y2 ?? 0));
 
-    return {
-      x: Math.round(x1),
-      y: Math.round(y1),
-      width: Math.max(0, Math.round(x2 - x1)),
-      height: Math.max(0, Math.round(y2 - y1)),
-    };
-  }
+		return {
+			x: Math.round(x1),
+			y: Math.round(y1),
+			width: Math.max(0, Math.round(x2 - x1)),
+			height: Math.max(0, Math.round(y2 - y1)),
+		};
+	}
 
-  // TS is dumb and infers box as Partial<PointBox> here because we did property checks earlier
-  box = box as Partial<NormalBox>;
-  return {
-    x: Math.round(Number(box.x ?? 0)),
-    y: Math.round(Number(box.y ?? 0)),
-    width: Math.max(0, Math.round(Number(box.width ?? 0))),
-    height: Math.max(0, Math.round(Number(box.height ?? 0))),
-  };
+	// TS is dumb and infers box as Partial<PointBox> here because we did property checks earlier
+	box = box as Partial<NormalBox>;
+	return {
+		x: Math.round(Number(box.x ?? 0)),
+		y: Math.round(Number(box.y ?? 0)),
+		width: Math.max(0, Math.round(Number(box.width ?? 0))),
+		height: Math.max(0, Math.round(Number(box.height ?? 0))),
+	};
 }
 
 export function estimateTextWidth(text: string, fontSize: number): number {
-  return Array.from(String(text ?? "")).reduce((width, character) => {
-    width += estimateCharacterWidth(character, fontSize);
-    return width;
-  }, 0);
+	return Array.from(String(text ?? "")).reduce((width, character) => {
+		width += estimateCharacterWidth(character, fontSize);
+		return width;
+	}, 0);
 }
 
-export function wrapText(text: string, maxWidth: number, fontSize: number): string[] {
-  const normalized = String(text ?? "").replace(/\r\n/g, "\n");
-  const paragraphs = normalized.split("\n");
-  const wrappedLines: string[] = [];
+export function wrapText(
+	text: string,
+	maxWidth: number,
+	fontSize: number,
+): string[] {
+	const normalized = String(text ?? "").replace(/\r\n/g, "\n");
+	const paragraphs = normalized.split("\n");
+	const wrappedLines: string[] = [];
 
-  for (const paragraph of paragraphs) {
-    if (!paragraph.trim()) {
-      wrappedLines.push("");
-      continue;
-    }
+	for (const paragraph of paragraphs) {
+		if (!paragraph.trim()) {
+			wrappedLines.push("");
+			continue;
+		}
 
-    const tokens = paragraph.includes(" ") ? paragraph.trim().split(/\s+/) : Array.from(paragraph);
-    let currentLine = "";
+		const tokens = paragraph.includes(" ")
+			? paragraph.trim().split(/\s+/)
+			: Array.from(paragraph);
+		let currentLine = "";
 
-    for (const token of tokens) {
-      const pieces = estimateTextWidth(token, fontSize) > maxWidth
-        ? splitToken(token, maxWidth, fontSize)
-        : [token];
+		for (const token of tokens) {
+			const pieces =
+				estimateTextWidth(token, fontSize) > maxWidth
+					? splitToken(token, maxWidth, fontSize)
+					: [token];
 
-      let isContinuation = false;
-      for (const piece of pieces) {
-        if (!currentLine) {
-          currentLine = piece;
-          isContinuation = true;
-          continue;
-        }
+			let isContinuation = false;
+			for (const piece of pieces) {
+				if (!currentLine) {
+					currentLine = piece;
+					isContinuation = true;
+					continue;
+				}
 
-        const separator = paragraph.includes(" ") && !isContinuation ? " " : "";
-        const candidateLine = `${currentLine}${separator}${piece}`;
+				const separator =
+					paragraph.includes(" ") && !isContinuation ? " " : "";
+				const candidateLine = `${currentLine}${separator}${piece}`;
 
-        if (estimateTextWidth(candidateLine, fontSize) <= maxWidth) {
-          currentLine = candidateLine;
-        } else {
-          wrappedLines.push(currentLine);
-          currentLine = piece;
-        }
+				if (estimateTextWidth(candidateLine, fontSize) <= maxWidth) {
+					currentLine = candidateLine;
+				} else {
+					wrappedLines.push(currentLine);
+					currentLine = piece;
+				}
 
-        isContinuation = true;
-      }
-    }
+				isContinuation = true;
+			}
+		}
 
-    if (currentLine) {
-      wrappedLines.push(currentLine);
-    }
-  }
+		if (currentLine) {
+			wrappedLines.push(currentLine);
+		}
+	}
 
-  return wrappedLines.length > 0 ? wrappedLines : [""];
+	return wrappedLines.length > 0 ? wrappedLines : [""];
 }
 
 type BoxedLayout = Layout & {
-  box: NormalBox,
-  padding: number,
-  minFontSize?: number,
-  maxFontSize?: number,
-  lineGap: number,
-  horizontalSquish?: number,
+	box: NormalBox;
+	padding: number;
+	minFontSize?: number;
+	maxFontSize?: number;
+	lineGap: number;
+	horizontalSquish?: number;
 };
 
-export function fitTextToBox(text: string, box: BoxLike, options: Partial<BoxedLayout> = {}): BoxedLayout {
-  const normalizedBox = normalizeBox(box);
-  const padding = Number(options.padding ?? 8);
-  const minFontSize = Number(options.minFontSize ?? 12);
-  const maxFontSize = Number(options.maxFontSize ?? 48);
-  const lineGap = Number(options.lineGap ?? 1.08);
-  const horizontalSquish = Number(options.horizontalSquish ?? 1);
+export function fitTextToBox(
+	text: string,
+	box: BoxLike,
+	options: Partial<BoxedLayout> = {},
+): BoxedLayout {
+	const normalizedBox = normalizeBox(box);
+	const padding = Number(options.padding ?? 8);
+	const minFontSize = Number(options.minFontSize ?? 12);
+	const maxFontSize = Number(options.maxFontSize ?? 48);
+	const lineGap = Number(options.lineGap ?? 1.08);
+	const horizontalSquish = Number(options.horizontalSquish ?? 1);
 
-  const innerWidth = Math.max(0, normalizedBox.width - padding * 2);
-  const innerHeight = Math.max(0, normalizedBox.height - padding * 2);
+	const innerWidth = Math.max(0, normalizedBox.width - padding * 2);
+	const innerHeight = Math.max(0, normalizedBox.height - padding * 2);
 
-  let bestLayout: Layout | null = null;
-  let low = minFontSize;
-  let high = maxFontSize;
+	let bestLayout: Layout | null = null;
+	let low = minFontSize;
+	let high = maxFontSize;
 
-  while (low <= high) {
-    const fontSize = Math.floor((low + high) / 2);
-    const layout = buildLayoutForFontSize(text, innerWidth, innerHeight, fontSize, {
-      lineGap,
-      horizontalSquish,
-    });
+	while (low <= high) {
+		const fontSize = Math.floor((low + high) / 2);
+		const layout = buildLayoutForFontSize(
+			text,
+			innerWidth,
+			innerHeight,
+			fontSize,
+			{
+				lineGap,
+				horizontalSquish,
+			},
+		);
 
-    if (layout.fits) {
-      bestLayout = layout;
-      low = fontSize + 1;
-    } else {
-      high = fontSize - 1;
-    }
-  }
+		if (layout.fits) {
+			bestLayout = layout;
+			low = fontSize + 1;
+		} else {
+			high = fontSize - 1;
+		}
+	}
 
-  if (!bestLayout) {
-    bestLayout = buildLayoutForFontSize(text, innerWidth, innerHeight, minFontSize, {
-      lineGap,
-      horizontalSquish,
-    });
-  }
+	if (!bestLayout) {
+		bestLayout = buildLayoutForFontSize(
+			text,
+			innerWidth,
+			innerHeight,
+			minFontSize,
+			{
+				lineGap,
+				horizontalSquish,
+			},
+		);
+	}
 
-  return {
-    box: normalizedBox,
-    padding,
-    minFontSize,
-    maxFontSize,
-    lineGap,
-    horizontalSquish,
-    ...bestLayout,
-  };
+	return {
+		box: normalizedBox,
+		padding,
+		minFontSize,
+		maxFontSize,
+		lineGap,
+		horizontalSquish,
+		...bestLayout,
+	};
 }
 
 type ImageSource = Buffer | Uint8Array | string;
 
 export async function loadImageBuffer(source: ImageSource): Promise<Buffer> {
-  if (!source) {
-    throw new Error("missing image source");
-  }
+	if (!source) {
+		throw new Error("missing image source");
+	}
 
-  if (Buffer.isBuffer(source)) {
-    return source;
-  }
+	if (Buffer.isBuffer(source)) {
+		return source;
+	}
 
-  if (source instanceof Uint8Array) {
-    return Buffer.from(source);
-  }
+	if (source instanceof Uint8Array) {
+		return Buffer.from(source);
+	}
 
-  if (typeof source === "string" && /^https?:\/\//i.test(source)) {
-    const response = await fetch(source);
-    if (!response.ok) {
-      throw new Error(`failed to fetch image source: ${response.status} ${response.statusText}`);
-    }
+	if (typeof source === "string" && /^https?:\/\//i.test(source)) {
+		const response = await fetch(source);
+		if (!response.ok) {
+			throw new Error(
+				`failed to fetch image source: ${response.status} ${response.statusText}`,
+			);
+		}
 
-    return Buffer.from(await response.arrayBuffer());
-  }
+		return Buffer.from(await response.arrayBuffer());
+	}
 
-  if (typeof source === "string" && existsSync(source)) {
-    return readFile(source);
-  }
+	if (typeof source === "string" && existsSync(source)) {
+		return readFile(source);
+	}
 
-  throw new Error(`unsupported image source: ${String(source)}`);
+	throw new Error(`unsupported image source: ${String(source)}`);
 }
 
-export async function renderTextOnImage({ source, text, box, options = {} }: RenderTextParams) {
-  const imageBuffer = await loadImageBuffer(source);
-  const baseImage = sharp(imageBuffer);
-  const metadata = await baseImage.metadata();
+export async function renderTextOnImage({
+	source,
+	text,
+	box,
+	options = {},
+}: RenderTextParams) {
+	const imageBuffer = await loadImageBuffer(source);
+	const baseImage = sharp(imageBuffer);
+	const metadata = await baseImage.metadata();
 
-  if (!metadata.width || !metadata.height) {
-    throw new Error("unable to read base image dimensions");
-  }
+	if (!metadata.width || !metadata.height) {
+		throw new Error("unable to read base image dimensions");
+	}
 
-  const layout = fitTextToBox(text, box, options);
-  const svgOverlay = buildOverlaySvg(metadata.width, metadata.height, layout, options);
+	const layout = fitTextToBox(text, box, options);
+	const svgOverlay = buildOverlaySvg(
+		metadata.width,
+		metadata.height,
+		layout,
+		options,
+	);
 
-  const rendered = await baseImage
-    .composite([{ input: Buffer.from(svgOverlay) }])
-    .png()
-    .toBuffer();
+	const rendered = await baseImage
+		.composite([{ input: Buffer.from(svgOverlay) }])
+		.png()
+		.toBuffer();
 
-  return {
-    buffer: rendered,
-    layout,
-  };
+	return {
+		buffer: rendered,
+		layout,
+	};
 }
 
 type TextAnchor = "start" | "middle";
 
 type RenderedSingleLineText = {
-  buffer: Buffer,
-  layout: {
-    box: NormalBox,
-    fontSize: number,
-    horizontalSquish: number,
-    textAnchor: TextAnchor,
-  },
-}
+	buffer: Buffer;
+	layout: {
+		box: NormalBox;
+		fontSize: number;
+		horizontalSquish: number;
+		textAnchor: TextAnchor;
+	};
+};
 
 // If we do this properly we get a union too big to represent
 type HexColor = `#${string}`;
 
 type RenderOptions = BoxedLayout & {
-  paddingY: number,
-  minFontSize: number,
-  maxFontSize: number,
-  horizontalSquish: number,
-  textAnchor: TextAnchor,
-  fontWeight: number,
-  fill: HexColor,
-  stroke: HexColor,
-  strokeWidthRatio: number,
-  fontFamily: string,
-  box: NormalBox,
+	paddingY: number;
+	minFontSize: number;
+	maxFontSize: number;
+	horizontalSquish: number;
+	textAnchor: TextAnchor;
+	fontWeight: number;
+	fill: HexColor;
+	stroke: HexColor;
+	strokeWidthRatio: number;
+	fontFamily: string;
+	box: NormalBox;
 };
 
 type RenderTextParams = {
-  source: ImageSource,
-  text: string,
-  box: BoxLike,
-  options?: Partial<RenderOptions>,
+	source: ImageSource;
+	text: string;
+	box: BoxLike;
+	options?: Partial<RenderOptions>;
 };
 
-export async function renderSingleLineTextOnImage({ source, text, box, options = {} }: RenderTextParams): Promise<RenderedSingleLineText> {
-  const imageBuffer = await loadImageBuffer(source);
-  const baseImage = sharp(imageBuffer);
-  const metadata = await baseImage.metadata();
+export async function renderSingleLineTextOnImage({
+	source,
+	text,
+	box,
+	options = {},
+}: RenderTextParams): Promise<RenderedSingleLineText> {
+	const imageBuffer = await loadImageBuffer(source);
+	const baseImage = sharp(imageBuffer);
+	const metadata = await baseImage.metadata();
 
-  if (!metadata.width || !metadata.height) {
-    throw new Error("unable to read base image dimensions");
-  }
+	if (!metadata.width || !metadata.height) {
+		throw new Error("unable to read base image dimensions");
+	}
 
-  const normalizedBox = normalizeBox(box);
-  const paddingY = Number(options.paddingY ?? 0);
-  const minFontSize = Number(options.minFontSize ?? 10);
-  const maxFontSize = Number(options.maxFontSize ?? 96);
-  const horizontalSquish = Number(options.horizontalSquish ?? 1);
-  const fill = options.fill ?? "#111111";
-  const stroke = options.stroke ?? "#ffffff";
-  const strokeWidthRatio = Number(options.strokeWidthRatio ?? 0.08);
-  const fontFamily = options.fontFamily ?? "Arial, Helvetica, DejaVu Sans, sans-serif";
-  const fontWeight = options.fontWeight ?? 800;
-  const textAnchor = options.textAnchor ?? "start";
+	const normalizedBox = normalizeBox(box);
+	const paddingY = Number(options.paddingY ?? 0);
+	const minFontSize = Number(options.minFontSize ?? 10);
+	const maxFontSize = Number(options.maxFontSize ?? 96);
+	const horizontalSquish = Number(options.horizontalSquish ?? 1);
+	const fill = options.fill ?? "#111111";
+	const stroke = options.stroke ?? "#ffffff";
+	const strokeWidthRatio = Number(options.strokeWidthRatio ?? 0.08);
+	const fontFamily =
+		options.fontFamily ?? "Arial, Helvetica, DejaVu Sans, sans-serif";
+	const fontWeight = options.fontWeight ?? 800;
+	const textAnchor = options.textAnchor ?? "start";
 
-  const targetHeight = Math.max(1, normalizedBox.height - paddingY * 2);
-  const clampedFontSize = Math.max(minFontSize, Math.min(maxFontSize, Math.floor(targetHeight)));
-  const strokeWidth = Math.max(1, Math.round(clampedFontSize * strokeWidthRatio));
-  const squishX = Number(horizontalSquish);
+	const targetHeight = Math.max(1, normalizedBox.height - paddingY * 2);
+	const clampedFontSize = Math.max(
+		minFontSize,
+		Math.min(maxFontSize, Math.floor(targetHeight)),
+	);
+	const strokeWidth = Math.max(
+		1,
+		Math.round(clampedFontSize * strokeWidthRatio),
+	);
+	const squishX = Number(horizontalSquish);
 
-  const anchorX = textAnchor === "middle"
-    ? normalizedBox.x + normalizedBox.width / 2
-    : normalizedBox.x;
-  const anchorY = normalizedBox.y + paddingY;
-  const escapedText = escapeXml(String(text ?? ""));
-  const hasSquish = Math.abs(squishX - 1) > 0.0001;
-  const transform = hasSquish
-    ? `transform="translate(${anchorX} 0) scale(${squishX} 1) translate(${-anchorX} 0)"`
-    : "";
+	const anchorX =
+		textAnchor === "middle"
+			? normalizedBox.x + normalizedBox.width / 2
+			: normalizedBox.x;
+	const anchorY = normalizedBox.y + paddingY;
+	const escapedText = escapeXml(String(text ?? ""));
+	const hasSquish = Math.abs(squishX - 1) > 0.0001;
+	const transform = hasSquish
+		? `transform="translate(${anchorX} 0) scale(${squishX} 1) translate(${-anchorX} 0)"`
+		: "";
 
-  const svgOverlay = `
+	const svgOverlay = `
     <svg width="${metadata.width}" height="${metadata.height}" viewBox="0 0 ${metadata.width} ${metadata.height}" xmlns="http://www.w3.org/2000/svg">
       <g ${transform}>
         <text
@@ -306,80 +355,98 @@ export async function renderSingleLineTextOnImage({ source, text, box, options =
     </svg>
   `;
 
-  const rendered = await baseImage
-    .composite([{ input: Buffer.from(svgOverlay) }])
-    .png()
-    .toBuffer();
+	const rendered = await baseImage
+		.composite([{ input: Buffer.from(svgOverlay) }])
+		.png()
+		.toBuffer();
 
-  return {
-    buffer: rendered,
-    layout: {
-      box: normalizedBox,
-      fontSize: clampedFontSize,
-      horizontalSquish: squishX,
-      textAnchor,
-    },
-  };
+	return {
+		buffer: rendered,
+		layout: {
+			box: normalizedBox,
+			fontSize: clampedFontSize,
+			horizontalSquish: squishX,
+			textAnchor,
+		},
+	};
 }
 
 type CompressionOptions = {
-  quality: number,
-  chromaSubsampling: string
+	quality: number;
+	chromaSubsampling: string;
 };
 
-export async function addFakeCompressionArtifacts(buffer: Buffer, options: Partial<CompressionOptions> = {}) {
-  const quality = Number(options.quality ?? 38);
-  const chromaSubsampling = options.chromaSubsampling ?? "4:2:0";
+export async function addFakeCompressionArtifacts(
+	buffer: Buffer,
+	options: Partial<CompressionOptions> = {},
+) {
+	const quality = Number(options.quality ?? 38);
+	const chromaSubsampling = options.chromaSubsampling ?? "4:2:0";
 
-  // Re-encode through a lower-quality JPEG pass to introduce subtle blocking/ringing artifacts.
-  const jpegBuffer = await sharp(buffer)
-    .jpeg({
-      quality,
-      chromaSubsampling,
-      mozjpeg: true,
-    })
-    .toBuffer();
+	// Re-encode through a lower-quality JPEG pass to introduce subtle blocking/ringing artifacts.
+	const jpegBuffer = await sharp(buffer)
+		.jpeg({
+			quality,
+			chromaSubsampling,
+			mozjpeg: true,
+		})
+		.toBuffer();
 
-  return sharp(jpegBuffer).png().toBuffer();
+	return sharp(jpegBuffer).png().toBuffer();
 }
 
 export async function toSingleFrameGif(buffer: Buffer) {
-  return sharp(buffer)
-    .gif({
-      reuse: true,
-      effort: 7,
-    })
-    .toBuffer();
+	return sharp(buffer)
+		.gif({
+			reuse: true,
+			effort: 7,
+		})
+		.toBuffer();
 }
 
-function buildOverlaySvg(width: number, height: number, layout: BoxedLayout, options: Partial<RenderOptions>) {
-  const fill = options.fill ?? "#111111";
-  const stroke = options.stroke ?? "#ffffff";
-  const strokeWidthRatio = Number(options.strokeWidthRatio ?? 0.08);
-  const fontFamily = options.fontFamily ?? "Arial, Helvetica, DejaVu Sans, sans-serif";
-  const fontWeight = options.fontWeight ?? 800;
-  const textAnchor = options.textAnchor ?? "middle";
+function buildOverlaySvg(
+	width: number,
+	height: number,
+	layout: BoxedLayout,
+	options: Partial<RenderOptions>,
+) {
+	const fill = options.fill ?? "#111111";
+	const stroke = options.stroke ?? "#ffffff";
+	const strokeWidthRatio = Number(options.strokeWidthRatio ?? 0.08);
+	const fontFamily =
+		options.fontFamily ?? "Arial, Helvetica, DejaVu Sans, sans-serif";
+	const fontWeight = options.fontWeight ?? 800;
+	const textAnchor = options.textAnchor ?? "middle";
 
-  const centerX = layout.box.x + layout.box.width / 2;
-  const topY = layout.box.y + layout.padding + Math.max(0, (layout.innerHeight - layout.blockHeight) / 2);
-  const lineHeight = Math.max(1, Math.round(layout.fontSize * layout.lineGap));
-  const strokeWidth = Math.max(1, Math.round(layout.fontSize * strokeWidthRatio));
-  const squishX = Number(layout.horizontalSquish ?? 1);
-  const hasSquish = Math.abs(squishX - 1) > 0.0001;
+	const centerX = layout.box.x + layout.box.width / 2;
+	const topY =
+		layout.box.y +
+		layout.padding +
+		Math.max(0, (layout.innerHeight - layout.blockHeight) / 2);
+	const lineHeight = Math.max(
+		1,
+		Math.round(layout.fontSize * layout.lineGap),
+	);
+	const strokeWidth = Math.max(
+		1,
+		Math.round(layout.fontSize * strokeWidthRatio),
+	);
+	const squishX = Number(layout.horizontalSquish ?? 1);
+	const hasSquish = Math.abs(squishX - 1) > 0.0001;
 
-  const lines = layout.lines.length > 0 ? layout.lines : [""];
-  const tspans = lines
-    .map((line, index) => {
-      const dy = index === 0 ? 0 : lineHeight;
-      return `<tspan x="${centerX}" dy="${dy}">${escapeXml(line)}</tspan>`;
-    })
-    .join("");
+	const lines = layout.lines.length > 0 ? layout.lines : [""];
+	const tspans = lines
+		.map((line, index) => {
+			const dy = index === 0 ? 0 : lineHeight;
+			return `<tspan x="${centerX}" dy="${dy}">${escapeXml(line)}</tspan>`;
+		})
+		.join("");
 
-  const transform = hasSquish
-    ? `transform="translate(${centerX} 0) scale(${squishX} 1) translate(${-centerX} 0)"`
-    : "";
+	const transform = hasSquish
+		? `transform="translate(${centerX} 0) scale(${squishX} 1) translate(${-centerX} 0)"`
+		: "";
 
-  return `
+	return `
     <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
       <g ${transform}>
         <text
@@ -401,102 +468,123 @@ function buildOverlaySvg(width: number, height: number, layout: BoxedLayout, opt
 }
 
 type Layout = {
-  fontSize: number,
-  lineHeight: number,
-  lines: string[],
-  blockWidth: number,
-  blockHeight: number,
-  innerWidth: number,
-  innerHeight: number,
-  fits: boolean,
+	fontSize: number;
+	lineHeight: number;
+	lines: string[];
+	blockWidth: number;
+	blockHeight: number;
+	innerWidth: number;
+	innerHeight: number;
+	fits: boolean;
 };
 
-function buildLayoutForFontSize(text: string, innerWidth: number, innerHeight: number, fontSize: number, options: Partial<BoxedLayout>): Layout {
-  const horizontalSquish = Number(options.horizontalSquish ?? 1);
-  const lineGap = Number(options.lineGap ?? 1.08);
-  const wrappedLines = wrapText(text, innerWidth / horizontalSquish, fontSize);
-  const lineHeight = Math.max(1, Math.round(fontSize * lineGap));
-  const blockHeight = wrappedLines.length * lineHeight;
-  const blockWidth = wrappedLines.reduce((maxWidth, line) => {
-    return Math.max(maxWidth, estimateTextWidth(line, fontSize) * horizontalSquish);
-  }, 0);
+function buildLayoutForFontSize(
+	text: string,
+	innerWidth: number,
+	innerHeight: number,
+	fontSize: number,
+	options: Partial<BoxedLayout>,
+): Layout {
+	const horizontalSquish = Number(options.horizontalSquish ?? 1);
+	const lineGap = Number(options.lineGap ?? 1.08);
+	const wrappedLines = wrapText(
+		text,
+		innerWidth / horizontalSquish,
+		fontSize,
+	);
+	const lineHeight = Math.max(1, Math.round(fontSize * lineGap));
+	const blockHeight = wrappedLines.length * lineHeight;
+	const blockWidth = wrappedLines.reduce((maxWidth, line) => {
+		return Math.max(
+			maxWidth,
+			estimateTextWidth(line, fontSize) * horizontalSquish,
+		);
+	}, 0);
 
-  return {
-    fontSize,
-    lineHeight,
-    lines: wrappedLines,
-    blockWidth,
-    blockHeight,
-    innerWidth,
-    innerHeight,
-    fits: blockWidth <= innerWidth && blockHeight <= innerHeight,
-  };
+	return {
+		fontSize,
+		lineHeight,
+		lines: wrappedLines,
+		blockWidth,
+		blockHeight,
+		innerWidth,
+		innerHeight,
+		fits: blockWidth <= innerWidth && blockHeight <= innerHeight,
+	};
 }
 
-function splitToken(token: string, maxWidth: number, fontSize: number): string[] {
-  const pieces: string[] = [];
-  let current = "";
+function splitToken(
+	token: string,
+	maxWidth: number,
+	fontSize: number,
+): string[] {
+	const pieces: string[] = [];
+	let current = "";
 
-  for (const character of Array.from(token)) {
-    const candidate = `${current}${character}`;
+	for (const character of Array.from(token)) {
+		const candidate = `${current}${character}`;
 
-    if (!current || estimateTextWidth(candidate, fontSize) <= maxWidth) {
-      current = candidate;
-      continue;
-    }
+		if (!current || estimateTextWidth(candidate, fontSize) <= maxWidth) {
+			current = candidate;
+			continue;
+		}
 
-    pieces.push(current);
-    current = character;
-  }
+		pieces.push(current);
+		current = character;
+	}
 
-  if (current) {
-    pieces.push(current);
-  }
+	if (current) {
+		pieces.push(current);
+	}
 
-  return pieces;
+	return pieces;
 }
 
 function estimateCharacterWidth(character: string, fontSize: number): number {
-  if (/\s/u.test(character)) {
-    return fontSize * 0.33;
-  }
+	if (/\s/u.test(character)) {
+		return fontSize * 0.33;
+	}
 
-  if (/\p{Extended_Pictographic}/u.test(character)) {
-    return fontSize * 1.0;
-  }
+	if (/\p{Extended_Pictographic}/u.test(character)) {
+		return fontSize * 1.0;
+	}
 
-  if (/\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}/u.test(character)) {
-    return fontSize * 1.0;
-  }
+	if (
+		/\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}|\p{Script=Hangul}/u.test(
+			character,
+		)
+	) {
+		return fontSize * 1.0;
+	}
 
-  if (/[MW@#%&]/.test(character)) {
-    return fontSize * 0.82;
-  }
+	if (/[MW@#%&]/.test(character)) {
+		return fontSize * 0.82;
+	}
 
-  if (/[A-Z]/.test(character)) {
-    return fontSize * 0.68;
-  }
+	if (/[A-Z]/.test(character)) {
+		return fontSize * 0.68;
+	}
 
-  if (/[0-9]/.test(character)) {
-    return fontSize * 0.58;
-  }
+	if (/[0-9]/.test(character)) {
+		return fontSize * 0.58;
+	}
 
-  if (/[.,!?;:'"`]/.test(character)) {
-    return fontSize * 0.3;
-  }
+	if (/[.,!?;:'"`]/.test(character)) {
+		return fontSize * 0.3;
+	}
 
-  if (/[-–—]/.test(character)) {
-    return fontSize * 0.38;
-  }
+	if (/[-–—]/.test(character)) {
+		return fontSize * 0.38;
+	}
 
-  return fontSize * 0.55;
+	return fontSize * 0.55;
 }
 
 function escapeXml(text: string): string {
-  return String(text ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&apos;");
+	return String(text ?? "")
+		.replaceAll("&", "&amp;")
+		.replaceAll("<", "&lt;")
+		.replaceAll(">", "&gt;")
+		.replaceAll('"', "&quot;")
+		.replaceAll("'", "&apos;");
 }

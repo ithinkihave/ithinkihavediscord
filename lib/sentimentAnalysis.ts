@@ -7,9 +7,9 @@ const stemmer = natural.PorterStemmer;
 const analyzer = new SentimentAnalyzer("English", stemmer, "afinn");
 
 export function analyzeSentiment(text: string): number {
-  const tokens = tokenizer.tokenize(text);
-  const sentimentScore = analyzer.getSentiment(tokens);
-  return sentimentScore;
+	const tokens = tokenizer.tokenize(text);
+	const sentimentScore = analyzer.getSentiment(tokens);
+	return sentimentScore;
 }
 
 // Example values for interpreting the sentiment score:
@@ -23,24 +23,24 @@ const happyChannelId = config.channels.happyChannelId;
 const sentimentThreshold = 0.2;
 
 function shouldEnsureHappy(message: DiscordMessage): boolean {
-  return message.channel?.id === happyChannelId;
+	return message.channel?.id === happyChannelId;
 }
 
 export async function ensureHappy(message: DiscordMessage): Promise<boolean> {
-  if (!shouldEnsureHappy(message)) {
-    return false;
-  }
+	if (!shouldEnsureHappy(message)) {
+		return false;
+	}
 
-  const sentimentScore = analyzeSentiment(message.content ?? "");
+	const sentimentScore = analyzeSentiment(message.content ?? "");
 
-  console.log(
-    `[bot] sentiment score for message "${message.content}": ${sentimentScore}`,
-  );
+	console.log(
+		`[bot] sentiment score for message "${message.content}": ${sentimentScore}`,
+	);
 
-  if (sentimentScore < sentimentThreshold) {
-    await message.delete();
-    return true;
-  }
-  await message.react(config.emotes.happyReactionEmoteId);
-  return false;
+	if (sentimentScore < sentimentThreshold) {
+		await message.delete();
+		return true;
+	}
+	await message.react(config.emotes.happyReactionEmoteId);
+	return false;
 }
