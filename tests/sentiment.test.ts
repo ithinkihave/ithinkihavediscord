@@ -1,3 +1,4 @@
+import { config } from "../config.ts";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { analyzeSentiment, ensureHappy } from "../lib/sentimentAnalysis.ts";
@@ -28,7 +29,7 @@ describe("ensureHappy", () => {
 		const message = createMockMessage({
 			content:
 				"I hate this so much, this is the worst and I am miserable",
-			channelId: "1489797249734148188",
+			channelId: config.channels.happyChannelId,
 			onDelete: () => {
 				deleted = true;
 			},
@@ -50,7 +51,7 @@ describe("ensureHappy", () => {
 
 		const message = createMockMessage({
 			content: "I love this community, this is awesome and fantastic",
-			channelId: "1489797249734148188",
+			channelId: config.channels.happyChannelId,
 			onDelete: () => {
 				deleted = true;
 			},
@@ -62,7 +63,7 @@ describe("ensureHappy", () => {
 		const didDelete = await ensureHappy(message);
 
 		assert.equal(deleted, false);
-		assert.equal(reactedWith, "1489800033359364259");
+		assert.equal(reactedWith, config.emotes.happyReactionEmoteId);
 		assert.equal(didDelete, false);
 	});
 

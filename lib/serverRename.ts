@@ -1,6 +1,7 @@
+import { config } from "../config.ts";
 import type { DiscordMessage } from "./messageTypes.ts";
 
-const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
+const ITHINKIHAVE_SERVER_ID = config.server.ithinkihaveGuildId;
 const REQUIRED_RENAME_TERM_REGEX = /\baustin\b/;
 
 export function shouldRenameServer(text: string): boolean {
