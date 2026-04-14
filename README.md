@@ -1,3 +1,5 @@
+# WARNING: SLOP AHEAD
+
 # ithinkihave 🤔
 
 > **Hark! 🚀 'Tis a most disruptive instrument of community engagement 🤖, wrought of AI-driven conversational sorcery and next-generation moderation pipelines 🛡️.**
