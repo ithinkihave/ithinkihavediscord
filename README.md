@@ -26,7 +26,7 @@ Example:
 /gpa text: NaN
 ```
 
-![The GPA template with a GPA of NaN](res/gpa-nan.gif)
+![The GPA template with a GPA of NaN](img/gpa-nan.gif)
 
 ### `/glup` 💬
 
@@ -38,7 +38,7 @@ Example:
 /glup text: (λx.+x1)4→+ 4 1
 ```
 
-![The glup template with a lambda expression as text](res/glup-lambda.gif)
+![The glup template with a lambda expression as text](img/glup-lambda.gif)
 
 ## Automated message behaviours 💌
 

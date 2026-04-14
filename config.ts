@@ -5,6 +5,9 @@
  * make it easy to manage and update them in a single place.
  */
 
+import trueResponses from "./config/responses/true.json" with { type: "json" };
+import falseResponses from "./config/responses/false.json" with { type: "json" };
+
 export const config = {
 	/**
 	 * Discord Server (Guild) configurations
@@ -62,5 +65,11 @@ export const config = {
 			"1486109530118033470", // great
 			"1486108555751985333", // brilliant
 		],
+	},
+
+	truthCheck: {
+		// random responses for true/false truth-check replies
+		trueResponses,
+		falseResponses,
 	},
 };
