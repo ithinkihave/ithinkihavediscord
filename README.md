@@ -154,15 +154,16 @@ This platform is currently optimised 🎯 for a single strategic Discord deploym
 
 To onboard this solution 💼 into a new server environment most noble 🔧, thou shouldst commence with a thorough audit 🔍 of [index.ts](index.ts) and the service modules in [lib](/lib) 📁.
 
-# Developer Information
+## Developer workflow 🛠️
 
-## Features
-You should create a feature branch off `dev`, then open a PR to merge it into `dev`.
+### 🌿 Feature development — contribution pipeline
 
-## Releases
-To create a release create a release candidate branch off `dev` ending in `-rc`,
-then open a PR to merge it into `main`
+Thou shouldst create a feature branch off `dev` most diligently 🔀, then open a pull request 📬 to merge it back into `dev`, driving iterative product velocity most admirably 🚀.
 
-## Config
-Configuration should be in `config.ts` for more broad config which may be used
-in many places, and `res/*.json` for storing large expanding data.
+### 🚀 Release management — go-live protocol
+
+To mint a release most grand 🎉, thou shouldst create a release candidate branch off `dev` ending in `-rc` 🏷️, then open a pull request 📬 to merge it into `main`, activating the production deployment pipeline most gloriously ✅.
+
+### ⚙️ Configuration architecture — settings governance
+
+Configuration doth reside in `config.ts` 📄 for broad cross-cutting settings leveraged across many modules 🔧, and `res/*.json` 🗂️ for storing large, expanding data assets of the realm most precious 💎.
