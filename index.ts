@@ -19,7 +19,6 @@ import {
 	hydrateMessage,
 	shouldIgnoreMessage,
 	getNormalizedContent,
-	ITHINKIHAVE_SERVER_ID,
 } from "./lib/messageHandler.ts";
 import {
 	EMOJI_WAR_COMMAND_NAME,
@@ -130,14 +129,16 @@ client.login(process.env.TOKEN);
 async function registerSlashCommands<Ready extends boolean = boolean>(
 	client: Client<Ready>,
 ) {
-	const guildId = process.env.COMMAND_GUILD_ID ?? ITHINKIHAVE_SERVER_ID;
-	const guild = await client.guilds.fetch(guildId);
+	if (!client.application) {
+		console.error("[bot] client application is not available");
+		return;
+	}
 
-	await guild.commands.set([
+	await client.application.commands.set([
 		gpaCommandData,
 		glupCommandData,
 		emojiWarCommandData,
 		versionCommandData,
 	]);
-	console.log(`[bot] registered slash commands in ${guild.name}`);
+	console.log("[bot] registered slash commands globally");
 }
