@@ -4,6 +4,8 @@ import type {
 	NamedChatInputCommandInteraction,
 } from "./commandTypes.ts";
 import { execSync } from "child_process";
+import fs from "fs";
+import path from "path";
 
 export const VERSION_COMMAND_NAME = "version" satisfies CommandName;
 
@@ -20,12 +22,23 @@ export async function handleVersionCommand(
 	interaction: VersionCommandInteraction,
 ) {
 	try {
-		const commitCount = execSync("git rev-list --count HEAD")
-			.toString()
-			.trim();
-		const commitHash = execSync("git rev-parse --short HEAD")
-			.toString()
-			.trim();
+		let commitCount: string;
+		let commitHash: string;
+
+		const versionFilePath = path.join(process.cwd(), "version.json");
+
+		if (fs.existsSync(versionFilePath)) {
+			const versionData = JSON.parse(fs.readFileSync(versionFilePath, "utf8"));
+			commitCount = versionData.commitCount;
+			commitHash = versionData.commitHash;
+		} else {
+			commitCount = execSync("git rev-list --count HEAD")
+				.toString()
+				.trim();
+			commitHash = execSync("git rev-parse --short HEAD")
+				.toString()
+				.trim();
+		}
 
 		await interaction.reply({
 			content: `commit #${commitCount} - [${commitHash}](https://github.com/InvalidSE/ithinkihave/commit/${commitHash})`,
