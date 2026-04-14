@@ -27,6 +27,11 @@ import {
 	handleEmojiWarCommand,
 } from "./lib/emojiWar.ts";
 import type { CommandName } from "./lib/commandTypes.ts";
+import {
+	handleVersionCommand,
+	VERSION_COMMAND_NAME,
+	versionCommandData,
+} from "./lib/versionCheck.ts";
 
 type CommandHandler = (
 	interaction: ChatInputCommandInteraction,
@@ -36,6 +41,7 @@ const commandHandlers = new Map<CommandName, CommandHandler>([
 	[GPA_COMMAND_NAME, handleGpaCommand as CommandHandler],
 	[GLUP_COMMAND_NAME, handleGlupCommand as CommandHandler],
 	[EMOJI_WAR_COMMAND_NAME, handleEmojiWarCommand as CommandHandler],
+	[VERSION_COMMAND_NAME, handleVersionCommand as CommandHandler],
 ]);
 
 const client = new Client({
@@ -131,6 +137,7 @@ async function registerSlashCommands<Ready extends boolean = boolean>(
 		gpaCommandData,
 		glupCommandData,
 		emojiWarCommandData,
+		versionCommandData,
 	]);
 	console.log(`[bot] registered slash commands in ${guild.name}`);
 }
