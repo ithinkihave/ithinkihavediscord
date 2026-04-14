@@ -84,12 +84,12 @@ In the configured "happy" channel 😊, all missives are passed through an AI-po
 
 Our lean, cloud-native 🌐 technology stack is optimised for rapid iteration ⚡ and low operational overhead most efficient 💰:
 
-| Technology | Role | Value |
-|---|---|---|
-| Node.js `v22+` 🟢 | Runtime | Industry-standard, high-throughput execution environment |
-| discord.js 💬 | Platform SDK | Direct integration with the Discord API surface |
-| sharp 🖼️ | Image processing | Best-in-class performance for GIF/PNG generation pipelines |
-| natural 🌿 | NLP engine | Powers the sentiment-analysis and keyword-matching modules |
+| Technology        | Role             | Value                                                      |
+| ----------------- | ---------------- | ---------------------------------------------------------- |
+| Node.js `v22+` 🟢 | Runtime          | Industry-standard, high-throughput execution environment   |
+| discord.js 💬     | Platform SDK     | Direct integration with the Discord API surface            |
+| sharp 🖼️          | Image processing | Best-in-class performance for GIF/PNG generation pipelines |
+| natural 🌿        | NLP engine       | Powers the sentiment-analysis and keyword-matching modules |
 
 ## Onboarding & go-to-market setup ⚙️
 
