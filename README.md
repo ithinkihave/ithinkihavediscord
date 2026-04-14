@@ -153,3 +153,12 @@ This platform is currently optimised 🎯 for a single strategic Discord deploym
 - template images 🖼️ — visual content IP most prized 💡
 
 To onboard this solution 💼 into a new server environment most noble 🔧, thou shouldst commence with a thorough audit 🔍 of [index.ts](index.ts) and the service modules in [lib](/lib) 📁.
+
+# Developer Information
+
+## Features
+You should create a feature branch off `dev`, then open a PR to merge it into `dev`.
+
+## Releases
+To create a release create a release candidate branch off `dev` ending in `-rc`,
+then open a PR to merge it into `main`
