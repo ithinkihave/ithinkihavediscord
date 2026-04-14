@@ -1,5 +1,4 @@
-import trueresponses from "../res/true.json" with { type: "json" };
-import falseresponses from "../res/false.json" with { type: "json" };
+import { config } from "../config.ts";
 import type { DiscordMessage } from "./messageTypes.ts";
 
 const TRUTH_CHECK_PATTERNS = [
@@ -9,7 +8,9 @@ const TRUTH_CHECK_PATTERNS = [
 	/真的假的/,
 ];
 const TRUTH_CHECK_CHANNEL_NAME = "is-this-true";
-const TRUTH_CHECK_RESTRICTED_GUILD_IDS = new Set(["1378307576416178176"]);
+const TRUTH_CHECK_RESTRICTED_GUILD_IDS = new Set(
+	config.server.truthCheckRestrictedGuildIds,
+);
 
 export function shouldReplyToTruthQuestion(text: string): boolean {
 	const content = text.toLowerCase().replace(/\s+/g, " ").trim();
@@ -69,7 +70,10 @@ export async function handleTruthQuestion(
 	if (isOutsideTruthCheckChannel(message)) return;
 
 	const chance = Math.random();
-	const source = chance < 0.5 ? trueresponses : falseresponses;
+	const source =
+		chance < 0.5
+			? config.truthCheck.trueResponses
+			: config.truthCheck.falseResponses;
 	const randomResponse = source[Math.floor(Math.random() * source.length)];
 	if (!randomResponse) {
 		return;

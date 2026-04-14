@@ -1,3 +1,4 @@
+import { config } from "../config.ts";
 import natural from "natural";
 import type { DiscordMessage } from "./messageTypes.ts";
 const tokenizer = new natural.WordTokenizer();
@@ -18,7 +19,7 @@ export function analyzeSentiment(text: string): number {
 //   score > -0.5   -> Negative
 //   score <= -0.5  -> Strongly Negative
 
-const happyChannelId = "1489797249734148188";
+const happyChannelId = config.channels.happyChannelId;
 const sentimentThreshold = 0.2;
 
 function shouldEnsureHappy(message: DiscordMessage): boolean {
@@ -40,6 +41,6 @@ export async function ensureHappy(message: DiscordMessage): Promise<boolean> {
 		await message.delete();
 		return true;
 	}
-	await message.react("1489800033359364259");
+	await message.react(config.emotes.happyReactionEmoteId);
 	return false;
 }
