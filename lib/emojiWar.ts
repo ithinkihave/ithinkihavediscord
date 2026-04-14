@@ -15,6 +15,8 @@ type PieceMapping = { [piece: WarPiece]: string };
 const BOARD_BASE_PERCENT = 100;
 const BOARD_UPDATE_PERCENT = 20;
 const T100_UNFAIRNESS_PERCENT = 10;
+const SNAT_EMOJI_ID = "1489862058727051394";
+const SNAT_SCARCITY_STRENGTH_MULTIPLIER = 2;
 
 export class WarBoard<Size extends number> {
 	board: FixedLengthArray<FixedLengthArray<WarPiece, Size>, Size>;
@@ -110,13 +112,35 @@ export class WarBoard<Size extends number> {
 			(this.size * this.size * BOARD_BASE_PERCENT) / 100 / piece_count;
 		const as = this.#getPieceCount(a) + extra_per;
 		const bs = this.#getPieceCount(b) + extra_per;
+		const weighted_as = as * this.#getPieceStrengthMultiplier(a);
+		const weighted_bs = bs * this.#getPieceStrengthMultiplier(b);
 		// if there are many a then a is more likely to win
-		const unfair_winrate = as / (as + bs);
+		const unfair_winrate = weighted_as / (weighted_as + weighted_bs);
 		const fair_winrate = 0.5;
 		// if the game is taking forever make it fairer to slow the dominant piece down
 		const biasing_speed = -Math.log(T100_UNFAIRNESS_PERCENT / 100) / 100;
 		const factor = 1 - Math.exp(-this.turns_played * biasing_speed);
 		return factor * fair_winrate + (1 - factor) * unfair_winrate;
+	}
+
+	#getPieceStrengthMultiplier(piece: WarPiece): number {
+		if (!this.#isSnatPiece(piece)) {
+			return 1;
+		}
+		const snat_count = this.#getPieceCount(piece);
+		if (snat_count <= 0) {
+			return 1;
+		}
+		const board_size = this.size * this.size;
+		return (
+			1 +
+			(SNAT_SCARCITY_STRENGTH_MULTIPLIER * board_size) / snat_count
+		);
+	}
+
+	#isSnatPiece(piece: WarPiece): boolean {
+		const emoji = this.piece_mapping[piece];
+		return emoji !== undefined && emoji.includes(SNAT_EMOJI_ID);
 	}
 
 	#getRandomEdge(): [row: number, col: number, dy: number, dx: number] {
