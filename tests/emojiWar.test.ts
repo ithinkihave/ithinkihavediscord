@@ -68,3 +68,62 @@ describe("Edge generation", () => {
 		);
 	});
 });
+
+describe("Snat scarcity strength", () => {
+	it("Should lose less often when fewer snat pieces remain", () => {
+		const snat = "<:snat:1489862058727051394>";
+		const runs = 2000;
+
+		const simulateSnatWinRate = (
+			initialBoard: number[][],
+			seed: number,
+		): number => {
+			const rng = mulberry32(seed);
+			let wins = 0;
+			for (let i = 0; i < runs; i++) {
+				let randomStep = 0;
+				const board = new WarBoard(2, [snat, "A"], () => {
+					const phase = randomStep % 4;
+					randomStep++;
+					if (phase === 0) return 0; // horizontal edge
+					if (phase === 1) return 0; // row = 0
+					if (phase === 2) return 0; // col = 0
+					return rng();
+				});
+
+				for (let r = 0; r < 2; r++) {
+					for (let c = 0; c < 2; c++) {
+						(board.board[r] as number[])[c] =
+							initialBoard[r]?.[c] ?? 0;
+					}
+				}
+
+				board.updateGame();
+				if ((board.board[0] as number[])[0] === 0) {
+					wins++;
+				}
+			}
+			return wins / runs;
+		};
+
+		const abundantSnatWinRate = simulateSnatWinRate(
+			[
+				[0, 1],
+				[0, 1],
+			],
+			101,
+		);
+		const scarceSnatWinRate = simulateSnatWinRate(
+			[
+				[0, 1],
+				[1, 1],
+			],
+			202,
+		);
+
+		assert.ok(
+			scarceSnatWinRate > abundantSnatWinRate,
+			`Expected scarce snat win rate (${scarceSnatWinRate}) to exceed abundant snat win rate (${abundantSnatWinRate})`,
+		);
+	});
+});
