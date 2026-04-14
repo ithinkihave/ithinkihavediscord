@@ -12,6 +12,7 @@ import {
 	runMessageHandlersInOrder,
 } from "./messagePipeline.ts";
 import type { DiscordMessage, FullDiscordMessage } from "./messageTypes.ts";
+import { handleSlang } from "./slangCheck.ts";
 
 export const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
 const CLANKER_ROLE_ID = "1435481760199610511";
@@ -53,6 +54,10 @@ export async function handleMessage<Event extends keyof ClientEvents>(
 				context: "error considering a chess message",
 				handler: handlePossibleChessMessage,
 			},
+			{
+				context: "error handling a slang reply",
+				handler: handleSlang,
+			}
 		],
 		runMessageHandler,
 	);
