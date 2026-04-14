@@ -133,8 +133,7 @@ export class WarBoard<Size extends number> {
 		}
 		const board_size = this.size * this.size;
 		return (
-			1 +
-			(SNAT_SCARCITY_STRENGTH_MULTIPLIER * board_size) / snat_count
+			1 + (SNAT_SCARCITY_STRENGTH_MULTIPLIER * board_size) / snat_count
 		);
 	}
 

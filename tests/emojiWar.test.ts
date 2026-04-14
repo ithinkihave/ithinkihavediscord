@@ -93,7 +93,8 @@ describe("Snat scarcity strength", () => {
 
 				for (let r = 0; r < 2; r++) {
 					for (let c = 0; c < 2; c++) {
-						(board.board[r] as number[])[c] = initialBoard[r]?.[c] ?? 0;
+						(board.board[r] as number[])[c] =
+							initialBoard[r]?.[c] ?? 0;
 					}
 				}
 
