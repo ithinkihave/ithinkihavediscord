@@ -18,6 +18,8 @@ export const slangs: Slang[] = [
 	{ short: "vscode", long: "visual studio code" },
 	{ short: "intellij", long: "vscode" },
 	{ short: "neovim", long: "intellij" },
+	{ short: "LGTM", long: "lets get this merged" },
+	{ short: "LGTM", long: "looks good to me" },
 ].map((slang) => {
 	(slang as typeof slang & { regex: RegExp }).regex = new RegExp(
 		`([^a-zA-Z\\d]|^)${slang.long}([^a-zA-Z\\d]|$)`,
