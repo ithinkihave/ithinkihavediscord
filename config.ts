@@ -1,8 +1,8 @@
 /**
  * Application Configuration File
  *
- * This file contains all the hardcoded IDs used across the application to make it
- * easy to manage and update them in a single place.
+ * This file contains all the hardcoded IDs used across the application to
+ * make it easy to manage and update them in a single place.
  */
 
 export const config = {
