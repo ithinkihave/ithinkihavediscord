@@ -29,7 +29,7 @@ export async function handleVersionCommand(
 
 		if (fs.existsSync(versionFilePath)) {
 			const versionData = JSON.parse(
-				fs.readFileSync(versionFilePath, "utf8")
+				fs.readFileSync(versionFilePath, "utf8"),
 			);
 			commitCount = versionData.commitCount;
 			commitHash = versionData.commitHash;
