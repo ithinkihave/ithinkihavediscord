@@ -140,10 +140,4 @@ async function registerSlashCommands<Ready extends boolean = boolean>(
 		versionCommandData,
 	]);
 	console.log(`[bot] registered slash commands in ${guild.name}`);
-	await guild.commands.set([
-		gpaCommandData,
-		glupCommandData,
-		emojiWarCommandData,
-	]);
-	console.log(`[bot] registered slash commands in ${guild.name}`);
 }
