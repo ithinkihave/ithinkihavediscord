@@ -14,7 +14,7 @@ export const slangs: Slang[] = [
 	{ short: "emacs", long: "vi" },
 	{ short: "nvim", long: "neovim" },
 	{ short: "helix", long: "nvim" },
-	{ short: "helix", long: "visual studio code" },
+	{ short: "visual studio code", long: "helix" },
 	{ short: "vscode", long: "visual studio code" },
 	{ short: "intellij", long: "vscode" },
 	{ short: "neovim", long: "intellij" },
