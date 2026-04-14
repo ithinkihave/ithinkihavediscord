@@ -1,3 +1,4 @@
+import { config } from "../config.ts";
 import { type ClientEvents } from "discord.js";
 import { handleKeywords } from "./keywordCheck.ts";
 import { handleChineseChannelEnglishCheck } from "./chineseCheck.ts";
@@ -14,8 +15,9 @@ import {
 import type { DiscordMessage, FullDiscordMessage } from "./messageTypes.ts";
 import { handleSlang } from "./slangCheck.ts";
 
-export const ITHINKIHAVE_SERVER_ID = "1435477855596318742";
-const CLANKER_ROLE_ID = "1435481760199610511";
+export const ITHINKIHAVE_SERVER_ID = config.server.ithinkihaveGuildId;
+const CLANKER_ROLE_ID = config.roles.clankerRoleId;
+
 const ERROR_IMG =
 	"https://cdn.discordapp.com/attachments/1487372867153690664/1487372867350958221/IMG-20260328-WA0017.png";
 
