@@ -8,6 +8,19 @@
 import trueResponses from "./config/responses/true.json" with { type: "json" };
 import falseResponses from "./config/responses/false.json" with { type: "json" };
 
+const botChessReactionIds = {
+	blunder: "1486108529822662838",
+	mistake: "1486109318100156426",
+	miss: "1486109284688203967",
+	inaccuracy: "1486109354217312417",
+	book: "1486109380150821087",
+	good: "1486109411918479390",
+	excellent: "1486109452389187604",
+	best: "1486109486404997301",
+	great: "1486109530118033470",
+	brilliant: "1486108555751985333",
+} as const;
+
 export const config = {
 	/**
 	 * Discord Server (Guild) configurations
@@ -52,19 +65,11 @@ export const config = {
 	 * Game/Feature configurations
 	 */
 	botChess: {
+		// named chess reaction emoji IDs for direct access in feature code
+		reactionIds: botChessReactionIds,
+
 		// array of emoji IDs that the bot can randomly react with
-		chessReactions: [
-			"1486108529822662838", // blunder
-			"1486109318100156426", // mistake
-			"1486109284688203967", // miss
-			"1486109354217312417", // inaccuracy
-			"1486109380150821087", // book
-			"1486109411918479390", // good
-			"1486109452389187604", // excellent
-			"1486109486404997301", // best
-			"1486109530118033470", // great
-			"1486108555751985333", // brilliant
-		],
+		chessReactions: Object.values(botChessReactionIds),
 	},
 
 	truthCheck: {
