@@ -166,4 +166,4 @@ To mint a release most grand 🎉, thou shouldst create a release candidate bran
 
 ### ⚙️ Configuration architecture — settings governance
 
-Configuration doth reside in `config.ts` 📄 for broad cross-cutting settings leveraged across many modules 🔧, and `res/*.json` 🗂️ for storing large, expanding data assets of the realm most precious 💎.
+Configuration doth reside in `config.ts` 📄 for broad cross-cutting settings leveraged across many modules 🔧, and `config/*/*.json` 🗂️ for storing large, expanding data assets of the realm most precious 💎.
