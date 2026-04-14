@@ -23,7 +23,11 @@
 	},
 	"devDependencies": {
 		"@types/node": "^25.5.2",
+		"pre-commit": "^1.2.2",
 		"prettier": "^3.8.2",
 		"typescript": "^6.0.2"
-	}
+	},
+	"pre-commit": [
+		"checkall"
+	]
 }
