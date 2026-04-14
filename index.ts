@@ -1,10 +1,20 @@
 import "dotenv/config.js";
-import { Client, GatewayIntentBits } from "discord.js";
+import { Client, GatewayIntentBits, type ChatInputCommandInteraction } from "discord.js";
 import { GPA_COMMAND_NAME, gpaCommandData, handleGpaCommand } from "./lib/gpaCheck.ts";
 import { GLUP_COMMAND_NAME, glupCommandData, handleGlupCommand } from "./lib/glupCheck.ts";
 import { VERSION_COMMAND_NAME, versionCommandData, handleVersionCommand } from "./lib/versionCheck.ts";
-import { isNamedCommandInteraction } from "./lib/commandTypes.ts";
 import { handleMessage, hydrateMessage, shouldIgnoreMessage, getNormalizedContent, ITHINKIHAVE_SERVER_ID } from "./lib/messageHandler.ts";
+import { EMOJI_WAR_COMMAND_NAME, emojiWarCommandData, handleEmojiWarCommand } from "./lib/emojiWar.ts";
+import type { CommandName } from "./lib/commandTypes.ts";
+
+type CommandHandler = (interaction: ChatInputCommandInteraction) => Promise<void>;
+
+const commandHandlers = new Map<CommandName, CommandHandler>([
+  [GPA_COMMAND_NAME, handleGpaCommand as CommandHandler],
+  [GLUP_COMMAND_NAME, handleGlupCommand as CommandHandler],
+  [EMOJI_WAR_COMMAND_NAME, handleEmojiWarCommand as CommandHandler],
+  [VERSION_COMMAND_NAME, handleVersionCommand as CommandHandler],
+]);
 
 const client = new Client({
   intents: [
@@ -12,8 +22,6 @@ const client = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildMessageTyping,
-    GatewayIntentBits.GuildMessageReactions,
   ],
   allowedMentions: { repliedUser: false },
 });
@@ -55,32 +63,28 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   try {
-    if (isNamedCommandInteraction(interaction, GPA_COMMAND_NAME)) {
-      await handleGpaCommand(interaction);
-      return;
-    }
-
-    if (isNamedCommandInteraction(interaction, GLUP_COMMAND_NAME)) {
-      await handleGlupCommand(interaction);
-      return;
-    }
-
-    if (isNamedCommandInteraction(interaction, VERSION_COMMAND_NAME)) {
-      await handleVersionCommand(interaction);
+    // if it wasn't a CommandName we will just get undefined
+    const handler = commandHandlers.get(interaction.commandName as CommandName);
+    if (handler) {
+      await handler(interaction);
     }
   } catch (error) {
     console.error(`[bot] error handling /${interaction.commandName}`, error);
 
-    const message = "Something went wrong while rendering that image.";
+    const message = "Something went wrong.";
     if (interaction.deferred || interaction.replied) {
       try {
         await interaction.editReply({ content: message, attachments: [] });
-      } catch {} // ignore reply failures
+      } catch (e) {
+        console.error("[bot] failed to edit reply to error", e);
+      }
       return;
     }
     try {
       await interaction.reply({ content: message, ephemeral: true });
-    } catch {} // ignore reply failures
+    } catch (e) {
+      console.error("[bot] failed to reply with error", e);
+    }
   }
 });
 
@@ -90,7 +94,7 @@ async function registerSlashCommands<Ready extends boolean = boolean>(client: Cl
   const guildId = process.env.COMMAND_GUILD_ID ?? ITHINKIHAVE_SERVER_ID;
   const guild = await client.guilds.fetch(guildId);
 
-  await guild.commands.set([gpaCommandData, glupCommandData, versionCommandData]);
+  await guild.commands.set([gpaCommandData, glupCommandData, emojiWarCommandData, versionCommandData]);
   console.log(`[bot] registered slash commands in ${guild.name}`);
 }
 
