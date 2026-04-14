@@ -10,7 +10,9 @@ const TRUTH_CHECK_PATTERNS = [
 	/真的假的/,
 ];
 const TRUTH_CHECK_CHANNEL_NAME = "is-this-true";
-const TRUTH_CHECK_RESTRICTED_GUILD_IDS = new Set([config.server.truthCheckRestrictedGuildIds[0]]);
+const TRUTH_CHECK_RESTRICTED_GUILD_IDS = new Set([
+	config.server.truthCheckRestrictedGuildIds[0],
+]);
 
 export function shouldReplyToTruthQuestion(text: string): boolean {
 	const content = text.toLowerCase().replace(/\s+/g, " ").trim();

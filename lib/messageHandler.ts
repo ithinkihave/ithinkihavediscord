@@ -18,52 +18,50 @@ export const ITHINKIHAVE_SERVER_ID = config.server.ithinkihaveGuildId;
 const CLANKER_ROLE_ID = config.roles.clankerRoleId;
 
 const ERROR_IMG =
-  "https://cdn.discordapp.com/attachments/1487372867153690664/1487372867350958221/IMG-20260328-WA0017.png";
-
+	"https://cdn.discordapp.com/attachments/1487372867153690664/1487372867350958221/IMG-20260328-WA0017.png";
 
 export async function handleMessage<Event extends keyof ClientEvents>(
 	message: DiscordMessage,
 	eventType: Event,
 ) {
+	logMessage(message, eventType);
 
-  logMessage(message, eventType);
+	const handlerCheck = await runMessageHandlersInOrder(
+		message,
+		[
+			{
+				context: "error deleting message in 中文 chat",
+				handler: handleChineseChannelEnglishCheck,
+				stopOnResult: true,
+			},
+			{
+				context: "error ensuring happy sentiment",
+				handler: ensureHappy,
+				stopOnResult: true,
+			},
+			{
+				context: "error changing server name",
+				handler: handleServerRename,
+			},
+			{
+				context: "error handling keywords",
+				handler: handleKeywords,
+			},
+			{
+				context: "error replying to truth question",
+				handler: handleTruthQuestion,
+			},
+			{
+				context: "error considering a chess message",
+				handler: handlePossibleChessMessage,
+			},
+		],
+		runMessageHandler,
+	);
 
-  const handlerCheck = await runMessageHandlersInOrder(
-    message,
-    [
-      {
-        context: "error deleting message in 中文 chat",
-        handler: handleChineseChannelEnglishCheck,
-        stopOnResult: true,
-      },
-      {
-        context: "error ensuring happy sentiment",
-        handler: ensureHappy,
-        stopOnResult: true,
-      },
-      {
-        context: "error changing server name",
-        handler: handleServerRename,
-      },
-      {
-        context: "error handling keywords",
-        handler: handleKeywords,
-      },
-      {
-        context: "error replying to truth question",
-        handler: handleTruthQuestion,
-      },
-      {
-        context: "error considering a chess message",
-        handler: handlePossibleChessMessage,
-      },
-    ],
-    runMessageHandler,
-  );
-
-  if (!handlerCheck.ok || handlerCheck.result) {
-    return;
-  }
+	if (!handlerCheck.ok || handlerCheck.result) {
+		return;
+	}
 }
 
 export function isFullMessage<InGuild extends boolean = boolean>(
