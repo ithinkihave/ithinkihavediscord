@@ -1,6 +1,4 @@
 import { config } from "../config.ts";
-import trueresponses from "../res/true.json" with { type: "json" };
-import falseresponses from "../res/false.json" with { type: "json" };
 import type { DiscordMessage } from "./messageTypes.ts";
 
 const TRUTH_CHECK_PATTERNS = [
@@ -72,7 +70,10 @@ export async function handleTruthQuestion(
 	if (isOutsideTruthCheckChannel(message)) return;
 
 	const chance = Math.random();
-	const source = chance < 0.5 ? trueresponses : falseresponses;
+	const source =
+		chance < 0.5
+			? config.truthCheck.trueResponses
+			: config.truthCheck.falseResponses;
 	const randomResponse = source[Math.floor(Math.random() * source.length)];
 	if (!randomResponse) {
 		return;
