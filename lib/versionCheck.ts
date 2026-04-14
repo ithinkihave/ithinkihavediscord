@@ -4,7 +4,8 @@ import type {
 	NamedChatInputCommandInteraction,
 } from "./commandTypes.ts";
 import { execSync } from "node:child_process";
-import * as fs from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 export const VERSION_COMMAND_NAME = "version" satisfies CommandName;
 
@@ -17,7 +18,9 @@ type VersionCommandInteraction = NamedChatInputCommandInteraction<
 	typeof VERSION_COMMAND_NAME
 >;
 
-const VERSION_FILE_PATH = new URL("../version.json", import.meta.url);
+const VERSION_FILE_PATH = fileURLToPath(
+	new URL("../version.json", import.meta.url),
+);
 
 export async function handleVersionCommand(
 	interaction: VersionCommandInteraction,
@@ -28,9 +31,9 @@ export async function handleVersionCommand(
 		let commitCount: string;
 		let commitHash: string;
 
-		if (fs.existsSync(VERSION_FILE_PATH)) {
+		if (existsSync(VERSION_FILE_PATH)) {
 			const versionData = JSON.parse(
-				fs.readFileSync(VERSION_FILE_PATH, "utf8"),
+				readFileSync(VERSION_FILE_PATH, "utf8"),
 			);
 			commitCount = versionData.commitCount;
 			commitHash = versionData.commitHash;
@@ -49,20 +52,9 @@ export async function handleVersionCommand(
 	} catch (error) {
 		console.error("[bot] failed to get version info", error);
 		if (interaction.deferred || interaction.replied) {
-			try {
-				await interaction.editReply({
-					content: "Could not retrieve version information.",
-				});
-			} catch (replyError) {
-				console.error(
-					"[bot] failed to edit version error reply",
-					replyError,
-				);
-				await interaction.followUp({
-					content: "Could not retrieve version information.",
-					ephemeral: true,
-				});
-			}
+			await interaction.editReply({
+				content: "Could not retrieve version information.",
+			});
 			return;
 		}
 		await interaction.reply({
