@@ -162,3 +162,7 @@ You should create a feature branch off `dev`, then open a PR to merge it into `d
 ## Releases
 To create a release create a release candidate branch off `dev` ending in `-rc`,
 then open a PR to merge it into `main`
+
+## Config
+Configuration should be in `config.ts` for more broad config which may be used
+in many places, and `res/*.json` for storing large expanding data.
