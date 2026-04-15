@@ -6,7 +6,12 @@ import { handleTruthQuestion } from "./truthCheck.ts";
 import { handleServerRename } from "./serverRename.ts";
 import { ensureHappy } from "./sentimentAnalysis.ts";
 import { handleRandomEvents } from "./randomEvents.ts";
-import { type HandlerResult, type MessageHandler, type MessageHandlerReturnTypes, runMessageHandlersInOrder } from "./messagePipeline.ts";
+import {
+	type HandlerResult,
+	type MessageHandler,
+	type MessageHandlerReturnTypes,
+	runMessageHandlersInOrder,
+} from "./messagePipeline.ts";
 import type { DiscordMessage, FullDiscordMessage } from "./messageTypes.ts";
 
 export const ITHINKIHAVE_SERVER_ID = config.server.ithinkihaveGuildId;
