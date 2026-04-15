@@ -1,6 +1,6 @@
 import type { DiscordMessage } from "./messageTypes.ts";
 
-const REACT_PROBABILITY = 1 / 2;
+const BOT_RESPOND_PROBABILITY = 1 / 100;
 const MARKETPLACE_REPLIES = [
 	"is this still available?",
 	"can u deliver?",
@@ -25,7 +25,7 @@ const REACTIONS = [
 
 function shouldReact(): boolean {
 	// if someone wants to add this then maybe it shouldn't react to its own messages or messages in some channels? idk
-	return Math.random() <= REACT_PROBABILITY;
+	return Math.random() <= BOT_RESPOND_PROBABILITY;
 }
 
 export async function handleRandomEvents(
@@ -48,7 +48,7 @@ export async function handleRandomEvents(
 		}
 	}
 
-	if (Math.random() <= REACT_PROBABILITY) {
+	if (Math.random() <= BOT_RESPOND_PROBABILITY) {
 		const reply =
 			MARKETPLACE_REPLIES[
 				Math.floor(Math.random() * MARKETPLACE_REPLIES.length)
