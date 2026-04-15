@@ -8,7 +8,7 @@
 import trueResponses from "./config/responses/true.json" with { type: "json" };
 import falseResponses from "./config/responses/false.json" with { type: "json" };
 import marketplaceReplies from "./config/responses/marketplaceReplies.json" with { type: "json" };
-import randomEventReactionIds from "./config/reactions/randomEvents.json" with { type: "json" };
+import { randomEventReactionIds } from "./config/reactions/randomEvents.ts";
 
 const randomEventReactions = Object.values(randomEventReactionIds);
 

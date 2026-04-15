@@ -3,39 +3,14 @@ import type { DiscordMessage } from "./messageTypes.ts";
 
 const { respondProbability, marketplaceReplies, reactions } =
 	config.randomEvents;
-let randomNumberGenerator: () => number = Math.random;
-
-function getRandomNumber(): number {
-	return randomNumberGenerator();
-}
-
-export function setRandomSeedForTesting(seed: number): void {
-	let state = seed >>> 0;
-
-	randomNumberGenerator = () => {
-		state = (Math.imul(1664525, state) + 1013904223) >>> 0;
-		return state / 4294967296;
-	};
-}
-
-export function setRandomNumberGeneratorForTesting(random: () => number): void {
-	randomNumberGenerator = random;
-}
-
-export function resetRandomNumberGeneratorForTesting(): void {
-	randomNumberGenerator = Math.random;
-}
-
-function shouldReact(): boolean {
-	return getRandomNumber() <= respondProbability;
-}
 
 export async function handleRandomEvents(
 	message: DiscordMessage,
+	rng: () => number = Math.random,
 ): Promise<void> {
-	if (shouldReact()) {
+	if (rng() <= respondProbability) {
 		const reaction =
-			reactions[Math.floor(getRandomNumber() * reactions.length)];
+			reactions[Math.floor(rng() * reactions.length)];
 		if (!reaction) {
 			console.warn("[bot] no reactions configured for random reaction");
 		} else {
@@ -50,10 +25,10 @@ export async function handleRandomEvents(
 		}
 	}
 
-	if (getRandomNumber() <= respondProbability) {
+	if (rng() <= respondProbability) {
 		const reply =
 			marketplaceReplies[
-				Math.floor(getRandomNumber() * marketplaceReplies.length)
+				Math.floor(rng() * marketplaceReplies.length)
 			];
 		if (!reply) return;
 
@@ -67,3 +42,4 @@ export async function handleRandomEvents(
 		}
 	}
 }
+

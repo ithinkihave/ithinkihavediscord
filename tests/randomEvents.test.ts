@@ -1,67 +1,48 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { config } from "../config.ts";
-import {
-	handleRandomEvents,
-	resetRandomNumberGeneratorForTesting,
-	setRandomNumberGeneratorForTesting,
-	setRandomSeedForTesting,
-} from "../lib/randomEvents.ts";
+import { handleRandomEvents } from "../lib/randomEvents.ts";
 import { createMockMessage } from "./mocks/message.ts";
-
-function createSequenceRandom(values: number[]): () => number {
-	let index = 0;
-	return () => {
-		const value = values[index];
-		index += 1;
-		return value ?? 1;
-	};
-}
+import { createSequenceRandom, mulberry32 } from "./helpers/rng.ts";
 
 describe("random events", () => {
-	it("reacts deterministically when RNG is controlled", async () => {
+	it("reacts to message", async () => {
 		const reactions: string[] = [];
 		const replies: string[] = [];
-		setRandomNumberGeneratorForTesting(createSequenceRandom([0, 0, 1]));
+		// react=0 (≤ respondProbability, triggers), index=0 (first reaction),
+		// reply=1 (> respondProbability, skips)
+		const rng = createSequenceRandom([0, 0, 1]);
+		const message = createMockMessage({
+			onReact: (emoji) => {
+				reactions.push(emoji);
+			},
+			onReply: (response) => {
+				replies.push(response);
+			},
+		});
 
-		try {
-			const message = createMockMessage({
-				onReact: (emoji) => {
-					reactions.push(emoji);
-				},
-				onReply: (response) => {
-					replies.push(response);
-				},
-			});
-
-			await handleRandomEvents(message);
-		} finally {
-			resetRandomNumberGeneratorForTesting();
-		}
+		await handleRandomEvents(message, rng);
 
 		assert.deepEqual(reactions, [config.randomEvents.reactions[0]]);
 		assert.deepEqual(replies, []);
 	});
 
-	it("replies deterministically when RNG is controlled", async () => {
+	it("replies to message", async () => {
 		const reactions: string[] = [];
 		const replies: string[] = [];
-		setRandomNumberGeneratorForTesting(createSequenceRandom([1, 0, 0]));
+		// react=1 (> respondProbability, skips),
+		// reply=0 (≤ respondProbability, triggers), index=0 (first reply)
+		const rng = createSequenceRandom([1, 0, 0]);
+		const message = createMockMessage({
+			onReact: (emoji) => {
+				reactions.push(emoji);
+			},
+			onReply: (response) => {
+				replies.push(response);
+			},
+		});
 
-		try {
-			const message = createMockMessage({
-				onReact: (emoji) => {
-					reactions.push(emoji);
-				},
-				onReply: (response) => {
-					replies.push(response);
-				},
-			});
-
-			await handleRandomEvents(message);
-		} finally {
-			resetRandomNumberGeneratorForTesting();
-		}
+		await handleRandomEvents(message, rng);
 
 		assert.deepEqual(reactions, []);
 		assert.deepEqual(replies, [config.randomEvents.marketplaceReplies[0]]);
@@ -71,22 +52,18 @@ describe("random events", () => {
 		const runWithSeed = async (seed: number) => {
 			const reactions: string[] = [];
 			const replies: string[] = [];
-			setRandomSeedForTesting(seed);
+			const rng = mulberry32(seed);
 
-			try {
-				for (let i = 0; i < 300; i++) {
-					const message = createMockMessage({
-						onReact: (emoji) => {
-							reactions.push(emoji);
-						},
-						onReply: (response) => {
-							replies.push(response);
-						},
-					});
-					await handleRandomEvents(message);
-				}
-			} finally {
-				resetRandomNumberGeneratorForTesting();
+			for (let i = 0; i < 300; i++) {
+				const message = createMockMessage({
+					onReact: (emoji) => {
+						reactions.push(emoji);
+					},
+					onReply: (response) => {
+						replies.push(response);
+					},
+				});
+				await handleRandomEvents(message, rng);
 			}
 
 			return { reactions, replies };
@@ -97,3 +74,4 @@ describe("random events", () => {
 		assert.deepEqual(first, second);
 	});
 });
+
