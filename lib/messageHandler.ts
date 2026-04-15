@@ -6,6 +6,7 @@ import { handleTruthQuestion } from "./truthCheck.ts";
 import { handleServerRename } from "./serverRename.ts";
 import { ensureHappy } from "./sentimentAnalysis.ts";
 import { handleRandomEvents } from "./randomEvents.ts";
+import { handleSlang } from "./slangCheck.ts";
 import {
 	type HandlerResult,
 	type MessageHandler,
@@ -53,6 +54,10 @@ export async function handleMessage<Event extends keyof ClientEvents>(
 			{
 				context: "error considering a random event",
 				handler: handleRandomEvents,
+			},
+			{
+				context: "error handling a slang reply",
+				handler: handleSlang,
 			},
 		],
 		runMessageHandler,

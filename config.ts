@@ -8,7 +8,9 @@
 import trueResponses from "./config/responses/true.json" with { type: "json" };
 import falseResponses from "./config/responses/false.json" with { type: "json" };
 import marketplaceReplies from "./config/responses/marketplaceReplies.json" with { type: "json" };
-import chessReactionIds from "./config/reactions/chess.json" with { type: "json" };
+import randomEventReactionIds from "./config/reactions/randomEvents.json" with { type: "json" };
+
+const randomEventReactions = Object.values(randomEventReactionIds);
 
 export const config = {
 	/**
@@ -50,17 +52,6 @@ export const config = {
 		happyReactionEmoteId: "1489800033359364259",
 	},
 
-	/**
-	 * Game/Feature configurations
-	 */
-	botChess: {
-		// named chess reaction emoji IDs for direct access in feature code
-		reactionIds: chessReactionIds,
-
-		// array of emoji IDs that the bot can randomly react with
-		chessReactions: Object.values(chessReactionIds),
-	},
-
 	truthCheck: {
 		// random responses for true/false truth-check replies
 		trueResponses,
@@ -75,6 +66,6 @@ export const config = {
 		marketplaceReplies,
 
 		// reuse existing configured reactions
-		reactions: Object.values(chessReactionIds),
+		reactions: randomEventReactions,
 	},
 };
