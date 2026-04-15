@@ -114,6 +114,7 @@ export function getNormalizedContent(message: DiscordMessage): string {
 	return (message?.content ?? "").toLowerCase();
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function runMessageHandler<T extends MessageHandler<any>[]>(
 	message: DiscordMessage,
 	context: string,
