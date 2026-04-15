@@ -155,3 +155,17 @@ This platform is currently optimised 🎯 for a single strategic Discord deploym
 - template images 🖼️ — visual content IP most prized 💡
 
 To onboard this solution 💼 into a new server environment most noble 🔧, thou shouldst commence with a thorough audit 🔍 of [index.ts](index.ts) and the service modules in [lib](/lib) 📁.
+
+## Developer workflow 🛠️
+
+### 🌿 Feature development — contribution pipeline
+
+Thou shouldst create a feature branch off `dev` most diligently 🔀, then open a pull request 📬 to merge it back into `dev`, driving iterative product velocity most admirably 🚀.
+
+### 🚀 Release management — go-live protocol
+
+To mint a release most grand 🎉, thou shouldst create a release candidate branch off `dev` ending in `-rc` 🏷️, then open a pull request 📬 to merge it into `main`, activating the production deployment pipeline most gloriously ✅.
+
+### ⚙️ Configuration architecture — settings governance
+
+Configuration doth reside in `config.ts` 📄 for broad cross-cutting settings leveraged across many modules 🔧, and `config/*/*.json` 🗂️ for storing large, expanding data assets of the realm most precious 💎.
