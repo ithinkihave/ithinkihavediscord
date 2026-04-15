@@ -32,6 +32,7 @@ export const slangs: Slang[] = [
 	{ short: "spec", long: "specification" },
 	{ short: "repo", long: "repository" },
 	{ short: "LGTM", long: "let's get this merged" },
+	{ short: "LGTM", long: "lets get this merged" }, // so that it still responds to incorrect grammar
 	{ short: "LGTM", long: "looks good to me" },
 ].map((slang) => ({
 	...slang,
