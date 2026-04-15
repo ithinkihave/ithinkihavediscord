@@ -98,3 +98,68 @@ describe("Slang matching", () => {
 		assert.equal(response, "calc means calculator");
 	});
 });
+
+describe("Editor wars slang", () => {
+	it("suggests vi when message contains emacs", () => {
+		const original = Math.random;
+		Math.random = () => 0;
+		try {
+			const response = getResponse("I use emacs every day");
+			assert.ok(response !== undefined, "expected a response for emacs");
+			assert.ok(
+				response.includes("vi"),
+				`expected response to mention 'vi', got: ${response}`,
+			);
+		} finally {
+			Math.random = original;
+		}
+	});
+
+	it("suggests nvim when message contains neovim", () => {
+		const original = Math.random;
+		Math.random = () => 0;
+		try {
+			const response = getResponse("I switched to neovim");
+			assert.ok(response !== undefined, "expected a response for neovim");
+			assert.ok(
+				response.includes("nvim"),
+				`expected response to mention 'nvim', got: ${response}`,
+			);
+		} finally {
+			Math.random = original;
+		}
+	});
+
+	it("suggests intellij when message contains vscode", () => {
+		const original = Math.random;
+		Math.random = () => 0;
+		try {
+			const response = getResponse("I prefer vscode for everything");
+			assert.ok(response !== undefined, "expected a response for vscode");
+			assert.ok(
+				response.includes("intellij"),
+				`expected response to mention 'intellij', got: ${response}`,
+			);
+		} finally {
+			Math.random = original;
+		}
+	});
+
+	it("returns definition for vi (vi means emacs)", () => {
+		const response = getResponse("what is vi");
+		assert.equal(response, "vi means emacs");
+	});
+
+	it("returns definition for emacs (emacs means vi)", () => {
+		const response = getResponse("what is emacs");
+		assert.equal(response, "emacs means vi");
+	});
+
+	// nvim is both a short form (for neovim) and appears as long form in
+	// { short: "helix", long: "nvim" }. Definition should win over a slang
+	// reply that would suggest "helix".
+	it("definition takes precedence: what is nvim returns nvim means neovim", () => {
+		const response = getResponse("what is nvim");
+		assert.equal(response, "nvim means neovim");
+	});
+});
