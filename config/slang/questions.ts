@@ -4,4 +4,5 @@ export const questions = [
 	"what is a $slang",
 	"explain $slang",
 	"$slang\\?", // regex moment
+	"what are $slangs",
 ];
