@@ -59,6 +59,7 @@ export const slangs: Slang[] = [
 	{ short: "LGTM", long: "lets get this merged" }, // so that it still responds to incorrect grammar
 	{ short: "LGTM", long: "looks good to me" },
 	{ short: "ref", long: "reference" },
+	{ short: "PR", long: "pull request" },
 
 	// university
 	{ short: "uni", long: "university" },
