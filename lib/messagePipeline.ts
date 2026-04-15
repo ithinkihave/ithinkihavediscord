@@ -11,19 +11,19 @@ export type HandlerResult<T> = {
 	result: T;
 };
 
-export type RunMessageHandler<T extends MessageHandler<any>[]> = (
+export type RunMessageHandler<T extends MessageHandler<unknown>[]> = (
 	message: DiscordMessage,
 	context: string,
 	handler: (message: DiscordMessage) => Promise<MessageHandlerReturnTypes<T>>,
 ) => Promise<HandlerResult<MessageHandlerReturnTypes<T> | null>>;
 
-export type MessageHandlerReturnTypes<T extends MessageHandler<any>[]> =
+export type MessageHandlerReturnTypes<T extends MessageHandler<unknown>[]> =
 	Awaited<ReturnType<T[number]["handler"]>>;
 export async function runMessageHandlersInOrder<
-	T extends MessageHandler<any>[],
+	T extends MessageHandler<unknown>[],
 >(
 	message: DiscordMessage,
-	handlers: T,
+	handlers: MessageHandler<Awaited<ReturnType<T[number]["handler"]>>>[],
 	runMessageHandler: RunMessageHandler<T>,
 ): Promise<HandlerResult<MessageHandlerReturnTypes<T> | null>> {
 	for (const { context, handler, stopOnResult } of handlers) {

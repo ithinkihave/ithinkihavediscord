@@ -155,18 +155,18 @@ export class WarBoard<Size extends number> {
 
 	#getPieceCount(count_piece: WarPiece) {
 		return this.board.reduce(
-			(acc, row, _) =>
+			(acc, row) =>
 				acc +
 				row
 					.filter((piece) => piece == count_piece)
-					.reduce((acc, _, _i) => acc + 1, 0),
+					.reduce((acc) => acc + 1, 0),
 			0,
 		);
 	}
 
 	#getUniquePieceCount(): number {
-		return this.board.reduce((acc, row, _) => {
-			row.reduce((acc, piece, _) => {
+		return this.board.reduce((acc, row) => {
+			row.reduce((acc, piece) => {
 				acc.add(piece);
 				return acc;
 			}, acc);

@@ -119,7 +119,7 @@ export function getNormalizedContent(message: DiscordMessage): string {
 	return (message?.content ?? "").toLowerCase();
 }
 
-export async function runMessageHandler<T extends MessageHandler<any>[]>(
+export async function runMessageHandler<T extends MessageHandler<unknown>[]>(
 	message: DiscordMessage,
 	context: string,
 	handler: (message: DiscordMessage) => Promise<MessageHandlerReturnTypes<T>>,

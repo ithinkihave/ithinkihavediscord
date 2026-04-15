@@ -14,8 +14,8 @@ function mulberry32(seed: number): () => number {
 
 describe("Even Board", () => {
 	it("Should start with an equal number of pieces", () => {
-		let board = new WarBoard(4, ["A", "B"]);
-		let zeros = board.board.reduce(
+		const board = new WarBoard(4, ["A", "B"]);
+		const zeros = board.board.reduce(
 			(acc, row) =>
 				acc +
 				row.filter((piece) => piece === 0).reduce((acc) => acc + 1, 0),
