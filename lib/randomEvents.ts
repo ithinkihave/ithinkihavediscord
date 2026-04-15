@@ -9,8 +9,7 @@ export async function handleRandomEvents(
 	rng: () => number = Math.random,
 ): Promise<void> {
 	if (rng() <= respondProbability) {
-		const reaction =
-			reactions[Math.floor(rng() * reactions.length)];
+		const reaction = reactions[Math.floor(rng() * reactions.length)];
 		if (!reaction) {
 			console.warn("[bot] no reactions configured for random reaction");
 		} else {
@@ -27,9 +26,7 @@ export async function handleRandomEvents(
 
 	if (rng() <= respondProbability) {
 		const reply =
-			marketplaceReplies[
-				Math.floor(rng() * marketplaceReplies.length)
-			];
+			marketplaceReplies[Math.floor(rng() * marketplaceReplies.length)];
 		if (!reply) return;
 
 		try {
@@ -42,4 +39,3 @@ export async function handleRandomEvents(
 		}
 	}
 }
-

@@ -74,4 +74,3 @@ describe("random events", () => {
 		assert.deepEqual(first, second);
 	});
 });
-
