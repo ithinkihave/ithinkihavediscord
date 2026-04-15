@@ -1,14 +1,40 @@
 /**
- * Mulberry32 seeded pseudo-random number generator.
+ * Expands a 32-bit seed into a 32-bit integer using splitmix32.
+ * Used to derive xoshiro128++ state words from a single seed.
+ */
+function splitmix32(seed: number): () => number {
+	let s = seed | 0;
+	return function () {
+		s = (s + 0x9e3779b9) | 0;
+		let z = s;
+		z = Math.imul(z ^ (z >>> 16), 0x85ebca6b | 0);
+		z = Math.imul(z ^ (z >>> 13), 0xc2b2ae35 | 0);
+		return (z ^ (z >>> 16)) >>> 0;
+	};
+}
+
+/**
+ * xoshiro128++ seeded pseudo-random number generator.
+ * 128-bit state, period 2^128-1, passes PractRand.
  * Returns values in [0, 1).
  */
-export function mulberry32(seed: number): () => number {
+export function xoshiro128pp(seed: number): () => number {
+	const sm = splitmix32(seed);
+	let s0 = sm();
+	let s1 = sm();
+	let s2 = sm();
+	let s3 = sm();
+
 	return function () {
-		seed |= 0;
-		seed = (seed + 0x6d2b79f5) | 0;
-		let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-		t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+		const result = (((s0 + s3) | 0) + s0) >>> 0;
+		const t = s1 << 9;
+		s2 ^= s0;
+		s3 ^= s1;
+		s1 ^= s2;
+		s0 ^= s3;
+		s2 ^= t;
+		s3 = ((s3 << 11) | (s3 >>> 21)) >>> 0;
+		return result / 4294967296;
 	};
 }
 

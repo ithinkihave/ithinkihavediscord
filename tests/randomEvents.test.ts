@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { config } from "../config.ts";
 import { handleRandomEvents } from "../lib/randomEvents.ts";
 import { createMockMessage } from "./mocks/message.ts";
-import { createSequenceRandom, mulberry32 } from "./helpers/rng.ts";
+import { createSequenceRandom, xoshiro128pp } from "./helpers/rng.ts";
 
 describe("random events", () => {
 	it("reacts to message", async () => {
@@ -52,7 +52,7 @@ describe("random events", () => {
 		const runWithSeed = async (seed: number) => {
 			const reactions: string[] = [];
 			const replies: string[] = [];
-			const rng = mulberry32(seed);
+			const rng = xoshiro128pp(seed);
 
 			for (let i = 0; i < 300; i++) {
 				const message = createMockMessage({
