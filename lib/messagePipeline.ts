@@ -23,7 +23,7 @@ export async function runMessageHandlersInOrder<
 	T extends MessageHandler<unknown>[],
 >(
 	message: DiscordMessage,
-	handlers: T,
+	handlers: MessageHandler<Awaited<ReturnType<T[number]["handler"]>>>[],
 	runMessageHandler: RunMessageHandler<T>,
 ): Promise<HandlerResult<MessageHandlerReturnTypes<T> | null>> {
 	for (const { context, handler, stopOnResult } of handlers) {
