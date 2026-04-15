@@ -7,6 +7,11 @@ export const slangs: Slang[] = [
 	{ short: "opamp", long: "operational amplifier" },
 	{ short: "BJT", long: "bipolar junction transistor" },
 	{ short: "DJT", long: "duleepa junction transistor" },
+	{
+		short: "MOSFET",
+		long: "metal oxide semiconductor field effect transistor",
+	},
+	{ short: "FET", long: "field effect transistor" },
 	{ short: "VHDL", long: "VHSIC Hardware Description Language" },
 	{ short: "VHSIC", long: "Very High Speed Integrated Circuit" },
 	{ short: "vi", long: "emacs" },
@@ -18,12 +23,17 @@ export const slangs: Slang[] = [
 	{ short: "vscode", long: "visual studio code" },
 	{ short: "intellij", long: "vscode" },
 	{ short: "neovim", long: "intellij" },
-	{ short: "LGTM", long: "lets get this merged" },
+	{ short: "mic", long: "microphone" },
+	{ short: "prof", long: "professor" },
+	{ short: "uni", long: "university" },
+	{ short: "lab", long: "laboratory" },
+	{ short: "comp", long: "computer" },
+	{ short: "app", long: "application" },
+	{ short: "spec", long: "specification" },
+	{ short: "repo", long: "repository" },
+	{ short: "LGTM", long: "let's get this merged" },
 	{ short: "LGTM", long: "looks good to me" },
-].map((slang) => {
-	(slang as typeof slang & { regex: RegExp }).regex = new RegExp(
-		`([^a-zA-Z\\d]|^)${slang.long}([^a-zA-Z\\d]|$)`,
-		"i",
-	);
-	return slang as typeof slang & { regex: RegExp };
-});
+].map((slang) => ({
+	...slang,
+	regex: new RegExp(`([^a-zA-Z\\d]|^)${slang.long}([^a-zA-Z\\d]|$)`, "i"),
+}));

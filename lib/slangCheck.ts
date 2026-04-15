@@ -10,7 +10,7 @@ export type Slang = {
 };
 
 function getSlangResponse(text: string): string | undefined {
-	const matching = slangs.filter((slang) => text.match(slang.regex));
+	const matching = slangs.filter((slang) => slang.regex.test(text));
 	const slang = matching[Math.floor(Math.random() * matching.length)];
 	if (slang === undefined) {
 		return;
@@ -25,8 +25,8 @@ function getDefinitionResponse(text: string): string | undefined {
 	for (const question of questions) {
 		for (const slang of slangs) {
 			if (
-				text.match(
-					new RegExp(question.replace("$slang", slang.short), "gi"),
+				new RegExp(question.replace("$slang", slang.short), "gi").test(
+					text,
 				)
 			) {
 				return `${slang.short} means ${slang.long}`;
