@@ -1,4 +1,4 @@
-import type { Slang } from "../../lib/slangCheck.ts";
+import { toSeperatedRegex, type Slang } from "../../lib/slangCheck.ts";
 
 export const slangs: Slang[] = [
 	{ short: "calc", long: "calculator" },
@@ -16,6 +16,7 @@ export const slangs: Slang[] = [
 	{ short: "VHSIC", long: "Very High Speed Integrated Circuit" },
 	{ short: "vi", long: "emacs" },
 	{ short: "vi", long: "vim" },
+	{ short: "vim", long: "vi improved" },
 	{ short: "emacs", long: "vi" },
 	{ short: "nvim", long: "neovim" },
 	{ short: "helix", long: "nvim" },
@@ -37,5 +38,5 @@ export const slangs: Slang[] = [
 	{ short: "LGTM", long: "looks good to me" },
 ].map((slang) => ({
 	...slang,
-	regex: new RegExp(`([^a-zA-Z\\d]|^)${slang.long}([^a-zA-Z\\d]|$)`, "i"),
+	regex: toSeperatedRegex(slang.long)
 }));
