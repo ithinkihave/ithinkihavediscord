@@ -11,19 +11,16 @@ export type HandlerResult<T> = {
 	result: T;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type RunMessageHandler<T extends MessageHandler<any>[]> = (
+export type RunMessageHandler<T extends MessageHandler<unknown>[]> = (
 	message: DiscordMessage,
 	context: string,
 	handler: (message: DiscordMessage) => Promise<MessageHandlerReturnTypes<T>>,
 ) => Promise<HandlerResult<MessageHandlerReturnTypes<T> | null>>;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type MessageHandlerReturnTypes<T extends MessageHandler<any>[]> =
+export type MessageHandlerReturnTypes<T extends MessageHandler<unknown>[]> =
 	Awaited<ReturnType<T[number]["handler"]>>;
 export async function runMessageHandlersInOrder<
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	T extends MessageHandler<any>[],
+	T extends MessageHandler<unknown>[],
 >(
 	message: DiscordMessage,
 	handlers: T,
