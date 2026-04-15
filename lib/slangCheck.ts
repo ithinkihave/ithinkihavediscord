@@ -12,7 +12,7 @@ export type Slang = {
 const questionMatchers: Array<{ regex: RegExp; slang: Slang }> =
 	questions.flatMap((question) =>
 		slangs.map((slang) => ({
-			regex: new RegExp(question.replace("$slang", slang.short), "i"),
+			regex: toSeperatedRegex(question.replace("$slang", slang.short)),
 			slang,
 		})),
 	);
@@ -53,4 +53,8 @@ export async function handleSlang(message: DiscordMessage): Promise<void> {
 	if (messageResponse) {
 		await message.reply(messageResponse);
 	}
+}
+
+export function toSeperatedRegex(pattern: string): RegExp {
+	return new RegExp(`([^a-zA-Z\\d]|^)${pattern}([^a-zA-Z\\d]|$)`, "i");
 }

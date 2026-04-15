@@ -38,5 +38,5 @@ export const slangs: Slang[] = [
 	{ short: "LGTM", long: "looks good to me" },
 ].map((slang) => ({
 	...slang,
-	regex: toSeperatedRegex(slang.long)
+	regex: toSeperatedRegex(slang.long),
 }));
