@@ -7,19 +7,8 @@
 
 import trueResponses from "./config/responses/true.json" with { type: "json" };
 import falseResponses from "./config/responses/false.json" with { type: "json" };
-
-const botChessReactionIds = {
-	blunder: "1486108529822662838",
-	mistake: "1486109318100156426",
-	miss: "1486109284688203967",
-	inaccuracy: "1486109354217312417",
-	book: "1486109380150821087",
-	good: "1486109411918479390",
-	excellent: "1486109452389187604",
-	best: "1486109486404997301",
-	great: "1486109530118033470",
-	brilliant: "1486108555751985333",
-} as const;
+import marketplaceReplies from "./config/responses/marketplaceReplies.json" with { type: "json" };
+import chessReactionIds from "./config/reactions/chess.json" with { type: "json" };
 
 export const config = {
 	/**
@@ -66,15 +55,26 @@ export const config = {
 	 */
 	botChess: {
 		// named chess reaction emoji IDs for direct access in feature code
-		reactionIds: botChessReactionIds,
+		reactionIds: chessReactionIds,
 
 		// array of emoji IDs that the bot can randomly react with
-		chessReactions: Object.values(botChessReactionIds),
+		chessReactions: Object.values(chessReactionIds),
 	},
 
 	truthCheck: {
 		// random responses for true/false truth-check replies
 		trueResponses,
 		falseResponses,
+	},
+
+	randomEvents: {
+		// chance to react and chance to reply per incoming message
+		respondProbability: 1 / 100,
+
+		// marketplace-style replies used for random message responses
+		marketplaceReplies,
+
+		// reuse existing configured reactions
+		reactions: Object.values(chessReactionIds),
 	},
 };
