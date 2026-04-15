@@ -1,5 +1,5 @@
 import type { DiscordMessage } from "./messageTypes.ts";
-import { slangs } from "../config/slang/slang.ts";
+import { slangData } from "../config/slang/slang.ts";
 import { templates } from "../config/slang/templates.ts";
 import { questions } from "../config/slang/questions.ts";
 
@@ -9,10 +9,29 @@ export type Slang = {
 	regex: RegExp;
 };
 
+function escapeRegExp(str: string): string {
+	return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function toSeparatedRegex(pattern: string): RegExp {
+	const escaped = escapeRegExp(pattern);
+	return new RegExp(
+		`([^a-zA-Z\\d]|^)${escaped}([^a-zA-Z\\d]|$)`,
+		"i",
+	);
+}
+
+const slangs: Slang[] = slangData.map((slang) => ({
+	...slang,
+	regex: toSeparatedRegex(slang.long),
+}));
+
 const questionMatchers: Array<{ regex: RegExp; slang: Slang }> =
 	questions.flatMap((question) =>
 		slangs.map((slang) => ({
-			regex: toSeperatedRegex(question.replace("$slang", slang.short)),
+			regex: toSeparatedRegex(
+				question.replace("$slang", slang.short),
+			),
 			slang,
 		})),
 	);
@@ -53,8 +72,4 @@ export async function handleSlang(message: DiscordMessage): Promise<void> {
 	if (messageResponse) {
 		await message.reply(messageResponse);
 	}
-}
-
-export function toSeperatedRegex(pattern: string): RegExp {
-	return new RegExp(`([^a-zA-Z\\d]|^)${pattern}([^a-zA-Z\\d]|$)`, "i");
 }

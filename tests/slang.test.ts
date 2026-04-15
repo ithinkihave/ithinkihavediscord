@@ -1,34 +1,41 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { getResponse, toSeperatedRegex } from "../lib/slangCheck.ts";
+import { getResponse, toSeparatedRegex } from "../lib/slangCheck.ts";
 
-describe("toSeperatedRegex", () => {
+describe("toSeparatedRegex", () => {
 	it("matches the pattern at the start of a string", () => {
-		assert.ok(toSeperatedRegex("cap").test("cap is short for capacitor"));
+		assert.ok(toSeparatedRegex("cap").test("cap is short for capacitor"));
 	});
 
 	it("matches the pattern at the end of a string", () => {
-		assert.ok(toSeperatedRegex("cap").test("I bought a cap"));
+		assert.ok(toSeparatedRegex("cap").test("I bought a cap"));
 	});
 
 	it("matches the pattern surrounded by spaces", () => {
-		assert.ok(toSeperatedRegex("cap").test("buy a cap today"));
+		assert.ok(toSeparatedRegex("cap").test("buy a cap today"));
 	});
 
 	it("matches the pattern preceded by punctuation", () => {
-		assert.ok(toSeperatedRegex("cap").test("(cap) is short"));
+		assert.ok(toSeparatedRegex("cap").test("(cap) is short"));
 	});
 
 	it("does not match when pattern is a prefix of a longer word", () => {
-		assert.ok(!toSeperatedRegex("cap").test("capacitor"));
+		assert.ok(!toSeparatedRegex("cap").test("capacitor"));
 	});
 
 	it("does not match when pattern is a suffix of a longer word", () => {
-		assert.ok(!toSeperatedRegex("cap").test("kneecap"));
+		assert.ok(!toSeparatedRegex("cap").test("kneecap"));
 	});
 
 	it("is case-insensitive", () => {
-		assert.ok(toSeperatedRegex("cap").test("CAP is short for capacitor"));
+		assert.ok(
+			toSeparatedRegex("cap").test("CAP is short for capacitor"),
+		);
+	});
+
+	it("escapes regex metacharacters in the pattern", () => {
+		assert.ok(toSeparatedRegex("c++").test("I love c++ so much"));
+		assert.ok(!toSeparatedRegex("c++").test("I love cpp so much"));
 	});
 });
 
@@ -37,50 +44,35 @@ describe("Slang matching", () => {
 		assert.equal(getResponse("hello there"), undefined);
 	});
 
-	it("matches a known long-form word", () => {
-		const original = Math.random;
-		Math.random = () => 0;
-		try {
-			const response = getResponse("I just bought a capacitor");
-			assert.ok(response !== undefined, "expected a response");
-			assert.ok(
-				response.includes("cap"),
-				`expected response to mention 'cap', got: ${response}`,
-			);
-		} finally {
-			Math.random = original;
-		}
+	it("matches a known long-form word", (t) => {
+		t.mock.method(Math, "random", () => 0);
+		const response = getResponse("I just bought a capacitor");
+		assert.ok(response !== undefined, "expected a response");
+		assert.ok(
+			response.includes("cap"),
+			`expected response to mention 'cap', got: ${response}`,
+		);
 	});
 
-	it("is case-insensitive", () => {
-		const original = Math.random;
-		Math.random = () => 0;
-		try {
-			const response = getResponse("CAPACITOR is what I need");
-			assert.ok(response !== undefined, "expected a match for CAPACITOR");
-		} finally {
-			Math.random = original;
-		}
+	it("is case-insensitive", (t) => {
+		t.mock.method(Math, "random", () => 0);
+		const response = getResponse("CAPACITOR is what I need");
+		assert.ok(response !== undefined, "expected a match for CAPACITOR");
 	});
 
 	it("does not match partial word (word boundary check)", () => {
 		assert.equal(getResponse("capacitors are everywhere"), undefined);
 	});
 
-	it("substitutes $short and $long in the template", () => {
-		const original = Math.random;
-		Math.random = () => 0;
-		try {
-			const response = getResponse("I'm using a capacitor here");
-			assert.ok(response !== undefined);
-			// template index 0: "# DID YOU KNOW!\n**$short** is short for **$long**!"
-			assert.ok(
-				response.includes("cap") && response.includes("capacitor"),
-				`expected both short and long in response, got: ${response}`,
-			);
-		} finally {
-			Math.random = original;
-		}
+	it("substitutes $short and $long in the template", (t) => {
+		t.mock.method(Math, "random", () => 0);
+		const response = getResponse("I'm using a capacitor here");
+		assert.ok(response !== undefined);
+		// template index 0: "# DID YOU KNOW!\n**$short** is short for **$long**!"
+		assert.ok(
+			response.includes("cap") && response.includes("capacitor"),
+			`expected both short and long in response, got: ${response}`,
+		);
 	});
 
 	it("returns a definition when asked what a slang term means", () => {
@@ -100,49 +92,36 @@ describe("Slang matching", () => {
 });
 
 describe("Editor wars slang", () => {
-	it("suggests vi when message contains emacs", () => {
-		const original = Math.random;
-		Math.random = () => 0;
-		try {
-			const response = getResponse("I use emacs every day");
-			assert.ok(response !== undefined, "expected a response for emacs");
-			assert.ok(
-				response.includes("vi"),
-				`expected response to mention 'vi', got: ${response}`,
-			);
-		} finally {
-			Math.random = original;
-		}
+	it("suggests vi when message contains emacs", (t) => {
+		t.mock.method(Math, "random", () => 0);
+		const response = getResponse("I use emacs every day");
+		assert.ok(response !== undefined, "expected a response for emacs");
+		assert.ok(
+			response.includes("vi"),
+			`expected response to mention 'vi', got: ${response}`,
+		);
 	});
 
-	it("suggests nvim when message contains neovim", () => {
-		const original = Math.random;
-		Math.random = () => 0;
-		try {
-			const response = getResponse("I switched to neovim");
-			assert.ok(response !== undefined, "expected a response for neovim");
-			assert.ok(
-				response.includes("nvim"),
-				`expected response to mention 'nvim', got: ${response}`,
-			);
-		} finally {
-			Math.random = original;
-		}
+	it("suggests nvim when message contains neovim", (t) => {
+		t.mock.method(Math, "random", () => 0);
+		const response = getResponse("I switched to neovim");
+		assert.ok(response !== undefined, "expected a response for neovim");
+		assert.ok(
+			response.includes("nvim"),
+			`expected response to mention 'nvim', got: ${response}`,
+		);
 	});
 
-	it("suggests intellij when message contains vscode", () => {
-		const original = Math.random;
-		Math.random = () => 0;
-		try {
-			const response = getResponse("I prefer vscode for everything");
-			assert.ok(response !== undefined, "expected a response for vscode");
-			assert.ok(
-				response.includes("intellij"),
-				`expected response to mention 'intellij', got: ${response}`,
-			);
-		} finally {
-			Math.random = original;
-		}
+	it("suggests intellij when message contains vscode", (t) => {
+		t.mock.method(Math, "random", () => 0);
+		const response = getResponse(
+			"I prefer vscode for everything",
+		);
+		assert.ok(response !== undefined, "expected a response for vscode");
+		assert.ok(
+			response.includes("intellij"),
+			`expected response to mention 'intellij', got: ${response}`,
+		);
 	});
 
 	it("returns definition for vi (vi means emacs)", () => {

@@ -1,6 +1,9 @@
-import { toSeperatedRegex, type Slang } from "../../lib/slangCheck.ts";
+export type SlangData = {
+	short: string;
+	long: string;
+};
 
-export const slangs: Slang[] = [
+export const slangData: SlangData[] = [
 	// electronics
 	{ short: "comp", long: "computer" },
 	{ short: "calc", long: "calculator" },
@@ -80,7 +83,4 @@ export const slangs: Slang[] = [
 	{ short: "TA", long: "RA" },
 	{ short: "TA", long: "GTA" },
 	{ short: "TA", long: "GRA" },
-].map((slang) => ({
-	...slang,
-	regex: toSeperatedRegex(slang.long),
-}));
+];
