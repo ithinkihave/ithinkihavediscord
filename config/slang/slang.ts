@@ -26,6 +26,7 @@ export const slangs: Slang[] = [
 	{ short: "mic", long: "microphone" },
 	{ short: "prof", long: "professor" },
 	{ short: "uni", long: "university" },
+	{ short: "lec", long: "lecture" },
 	{ short: "lab", long: "laboratory" },
 	{ short: "comp", long: "computer" },
 	{ short: "app", long: "application" },
