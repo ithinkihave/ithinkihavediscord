@@ -28,9 +28,7 @@ describe("toSeparatedRegex", () => {
 	});
 
 	it("is case-insensitive", () => {
-		assert.ok(
-			toSeparatedRegex("cap").test("CAP is short for capacitor"),
-		);
+		assert.ok(toSeparatedRegex("cap").test("CAP is short for capacitor"));
 	});
 
 	it("escapes regex metacharacters in the pattern", () => {
@@ -44,8 +42,7 @@ describe("Slang matching", () => {
 		assert.equal(getResponse("hello there"), undefined);
 	});
 
-	it("matches a known long-form word", (t) => {
-		t.mock.method(Math, "random", () => 0);
+	it("matches a known long-form word", () => {
 		const response = getResponse("I just bought a capacitor");
 		assert.ok(response !== undefined, "expected a response");
 		assert.ok(
@@ -54,8 +51,7 @@ describe("Slang matching", () => {
 		);
 	});
 
-	it("is case-insensitive", (t) => {
-		t.mock.method(Math, "random", () => 0);
+	it("is case-insensitive", () => {
 		const response = getResponse("CAPACITOR is what I need");
 		assert.ok(response !== undefined, "expected a match for CAPACITOR");
 	});
@@ -92,8 +88,7 @@ describe("Slang matching", () => {
 });
 
 describe("Editor wars slang", () => {
-	it("suggests vi when message contains emacs", (t) => {
-		t.mock.method(Math, "random", () => 0);
+	it("suggests vi when message contains emacs", () => {
 		const response = getResponse("I use emacs every day");
 		assert.ok(response !== undefined, "expected a response for emacs");
 		assert.ok(
@@ -102,8 +97,7 @@ describe("Editor wars slang", () => {
 		);
 	});
 
-	it("suggests nvim when message contains neovim", (t) => {
-		t.mock.method(Math, "random", () => 0);
+	it("suggests nvim when message contains neovim", () => {
 		const response = getResponse("I switched to neovim");
 		assert.ok(response !== undefined, "expected a response for neovim");
 		assert.ok(
@@ -112,11 +106,8 @@ describe("Editor wars slang", () => {
 		);
 	});
 
-	it("suggests intellij when message contains vscode", (t) => {
-		t.mock.method(Math, "random", () => 0);
-		const response = getResponse(
-			"I prefer vscode for everything",
-		);
+	it("suggests intellij when message contains vscode", () => {
+		const response = getResponse("I prefer vscode for everything");
 		assert.ok(response !== undefined, "expected a response for vscode");
 		assert.ok(
 			response.includes("intellij"),

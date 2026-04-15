@@ -15,10 +15,7 @@ function escapeRegExp(str: string): string {
 
 export function toSeparatedRegex(pattern: string): RegExp {
 	const escaped = escapeRegExp(pattern);
-	return new RegExp(
-		`([^a-zA-Z\\d]|^)${escaped}([^a-zA-Z\\d]|$)`,
-		"i",
-	);
+	return new RegExp(`([^a-zA-Z\\d]|^)${escaped}([^a-zA-Z\\d]|$)`, "i");
 }
 
 const slangs: Slang[] = slangData.map((slang) => ({
@@ -29,9 +26,7 @@ const slangs: Slang[] = slangData.map((slang) => ({
 const questionMatchers: Array<{ regex: RegExp; slang: Slang }> =
 	questions.flatMap((question) =>
 		slangs.map((slang) => ({
-			regex: toSeparatedRegex(
-				question.replace("$slang", slang.short),
-			),
+			regex: toSeparatedRegex(question.replace("$slang", slang.short)),
 			slang,
 		})),
 	);
