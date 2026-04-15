@@ -9,6 +9,14 @@ export type Slang = {
 	regex: RegExp;
 };
 
+const questionMatchers: Array<{ regex: RegExp; slang: Slang }> =
+	questions.flatMap((question) =>
+		slangs.map((slang) => ({
+			regex: new RegExp(question.replace("$slang", slang.short), "i"),
+			slang,
+		})),
+	);
+
 function getSlangResponse(text: string): string | undefined {
 	const matching = slangs.filter((slang) => slang.regex.test(text));
 	const slang = matching[Math.floor(Math.random() * matching.length)];
@@ -22,15 +30,9 @@ function getSlangResponse(text: string): string | undefined {
 }
 
 function getDefinitionResponse(text: string): string | undefined {
-	for (const question of questions) {
-		for (const slang of slangs) {
-			if (
-				new RegExp(question.replace("$slang", slang.short), "gi").test(
-					text,
-				)
-			) {
-				return `${slang.short} means ${slang.long}`;
-			}
+	for (const { regex, slang } of questionMatchers) {
+		if (regex.test(text)) {
+			return `${slang.short} means ${slang.long}`;
 		}
 	}
 	return undefined;
