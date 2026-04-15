@@ -1,6 +1,36 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { getResponse } from "../lib/slangCheck.ts";
+import { getResponse, toSeperatedRegex } from "../lib/slangCheck.ts";
+
+describe("toSeperatedRegex", () => {
+	it("matches the pattern at the start of a string", () => {
+		assert.ok(toSeperatedRegex("cap").test("cap is short for capacitor"));
+	});
+
+	it("matches the pattern at the end of a string", () => {
+		assert.ok(toSeperatedRegex("cap").test("I bought a cap"));
+	});
+
+	it("matches the pattern surrounded by spaces", () => {
+		assert.ok(toSeperatedRegex("cap").test("buy a cap today"));
+	});
+
+	it("matches the pattern preceded by punctuation", () => {
+		assert.ok(toSeperatedRegex("cap").test("(cap) is short"));
+	});
+
+	it("does not match when pattern is a prefix of a longer word", () => {
+		assert.ok(!toSeperatedRegex("cap").test("capacitor"));
+	});
+
+	it("does not match when pattern is a suffix of a longer word", () => {
+		assert.ok(!toSeperatedRegex("cap").test("kneecap"));
+	});
+
+	it("is case-insensitive", () => {
+		assert.ok(toSeperatedRegex("cap").test("CAP is short for capacitor"));
+	});
+});
 
 describe("Slang matching", () => {
 	it("returns undefined when no slang is present", () => {
