@@ -9,7 +9,7 @@
 		"typecheck": "tsc --noEmit",
 		"formatcheck": "prettier --list-different $(find . -type f | grep -E \".(ts|json|yaml|yml|md)$\" | grep -v node_modules) | xargs -I{} bash -c 'diff --color -u {} <(prettier {})'",
 		"format": "prettier . --write",
-		"checkall": "npm run test && npm run formatcheck && npm run typecheck && npm eslint"
+		"checkall": "npm run test && npm run formatcheck && npm run typecheck && npx eslint ."
 	},
 	"repository": "https://github.com/InvalidSE/ithinkihave.git",
 	"author": "Taine Reader <taine.reader@gmail.com>",
