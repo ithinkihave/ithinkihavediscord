@@ -19,10 +19,6 @@ export default defineConfig([
 		plugins: { json },
 		language: "json/json",
 		extends: ["json/recommended"],
-		rules: {
-			// package.json uses this
-			"json/no-empty-keys": "off",
-		},
 	},
 	{
 		files: ["**/*.md"],
