@@ -5,6 +5,7 @@ export type MockMessageOptions = {
 	channelId?: string;
 	onDelete?: () => void | Promise<void>;
 	onReact?: (emoji: string) => void | Promise<void>;
+	onReply?: (response: string) => void | Promise<void>;
 };
 
 export function createMockMessage(
@@ -18,6 +19,9 @@ export function createMockMessage(
 		},
 		async react(emoji: string) {
 			await options.onReact?.(emoji);
+		},
+		async reply(response: string) {
+			await options.onReply?.(response);
 		},
 	} as unknown as DiscordMessage;
 }

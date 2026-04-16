@@ -5,7 +5,8 @@ import { handleChineseChannelEnglishCheck } from "./chineseCheck.ts";
 import { handleTruthQuestion } from "./truthCheck.ts";
 import { handleServerRename } from "./serverRename.ts";
 import { ensureHappy } from "./sentimentAnalysis.ts";
-import { handlePossibleChessMessage } from "./botChess.ts";
+import { handleRandomEvents } from "./randomEvents.ts";
+import { handleSlang } from "./slangCheck.ts";
 import {
 	type HandlerResult,
 	type MessageHandler,
@@ -13,14 +14,12 @@ import {
 	runMessageHandlersInOrder,
 } from "./messagePipeline.ts";
 import type { DiscordMessage, FullDiscordMessage } from "./messageTypes.ts";
-import { handleSlang } from "./slangCheck.ts";
 
 export const ITHINKIHAVE_SERVER_ID = config.server.ithinkihaveGuildId;
 const CLANKER_ROLE_ID = config.roles.clankerRoleId;
 
 const ERROR_IMG =
 	"https://cdn.discordapp.com/attachments/1487372867153690664/1487372867350958221/IMG-20260328-WA0017.png";
-
 export async function handleMessage<Event extends keyof ClientEvents>(
 	message: DiscordMessage,
 	eventType: Event,
@@ -53,8 +52,8 @@ export async function handleMessage<Event extends keyof ClientEvents>(
 				handler: handleTruthQuestion,
 			},
 			{
-				context: "error considering a chess message",
-				handler: handlePossibleChessMessage,
+				context: "error considering a random event",
+				handler: handleRandomEvents,
 			},
 			{
 				context: "error handling a slang reply",
