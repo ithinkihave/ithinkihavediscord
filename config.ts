@@ -1,8 +1,11 @@
 /**
  * Application Configuration File
  *
- * This file contains all the hardcoded IDs used across the application to
+ * This file manages all the hardcoded IDs used across the application to
  * make it easy to manage and update them in a single place.
+ *
+ * These IDs can either exist in this file, or be imported from external
+ * files in the config/ directory.
  */
 
 import trueResponses from "./config/responses/true.json" with { type: "json" };
