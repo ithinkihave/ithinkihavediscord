@@ -5,7 +5,8 @@
 	"main": "index.ts",
 	"scripts": {
 		"start": "tsx index.ts",
-		"test": "node --import tsx/esm --test tests/*.test.ts",
+		"test": "node --import tsx/esm --test --test-concurrency=auto tests/*.test.ts",
+		"test:full": "EYES_FULL_FIXTURES=1 node --import tsx/esm --test --test-concurrency=auto tests/*.test.ts",
 		"typecheck": "tsc --noEmit",
 		"formatcheck": "prettier --list-different $(find . -type f | grep -E \".(ts|json|yaml|yml|md)$\" | grep -v node_modules) | xargs -I{} bash -c 'diff --color -u {} <(prettier {})'",
 		"format": "prettier . --write",
@@ -18,6 +19,7 @@
 		"discord.js": "^14.16.2",
 		"dotenv": "^16.4.5",
 		"natural": "^8.1.1",
+		"piscina": "^5.1.4",
 		"sharp": "^0.34.5",
 		"tsx": "^4.21.0"
 	},

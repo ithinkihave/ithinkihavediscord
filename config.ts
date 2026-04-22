@@ -45,6 +45,9 @@ export const config = {
 
 		// The channel ID designated for messages deemed 'happy' by sentiment analysis
 		happyChannelId: "1489797249734148188",
+
+		// Optional channel ID for the eyes media scanner; if empty, channel name fallback is used
+		eyesChannelId: "",
 	},
 
 	/**

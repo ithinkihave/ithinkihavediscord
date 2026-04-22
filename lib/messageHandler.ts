@@ -7,6 +7,7 @@ import { handleServerRename } from "./serverRename.ts";
 import { ensureHappy } from "./sentimentAnalysis.ts";
 import { handleRandomEvents } from "./randomEvents.ts";
 import { handleSlang } from "./slangCheck.ts";
+import { handleEyesMediaCheck } from "./eyeCheck/index.ts";
 import {
 	type HandlerResult,
 	type MessageHandler,
@@ -37,6 +38,11 @@ export async function handleMessage<Event extends keyof ClientEvents>(
 			{
 				context: "error ensuring happy sentiment",
 				handler: ensureHappy,
+				stopOnResult: true,
+			},
+			{
+				context: "error checking for eyes emoji in media",
+				handler: handleEyesMediaCheck,
 				stopOnResult: true,
 			},
 			{
