@@ -56,18 +56,21 @@ export const config = {
 	},
 
 	/**
-	 * Discord User configurations for nickname-changing features
+	 * Nickname-change triggers: each entry pairs a user ID with the patterns
+	 * that, when the full message matches, rename that user's nickname to the
+	 * message content.
 	 */
-	users: {
-		// InvalidSE — nickname changes on (word)SE or Invalid(word) messages
-		invalidSeUserId: "261232467955023872",
-
-		// hexPeriod — nickname changes on 0x(word) messages
-		hexperiodUserId: "495780356302045195",
-
-		// NathanSnail — nickname changes on nathan(word) messages
-		nathansnailUserId: "553043214374928395",
-	},
+	nicknameChanges: [
+		// InvalidSE — triggers on (word)SE or Invalid(word)
+		{ userId: "261232467955023872", patterns: [/^.+se$/i, /^invalid.+$/i] },
+		// hexperiod — triggers on 0x(anything)
+		{ userId: "495780356302045195", patterns: [/^0x.+$/i] },
+		// nathansnail — triggers on nathan(anything) or (anything)Snail
+		{
+			userId: "553043214374928395",
+			patterns: [/^nathan.+$/i, /^.+snail$/i],
+		},
+	],
 
 	truthCheck: {
 		// random responses for true/false truth-check replies

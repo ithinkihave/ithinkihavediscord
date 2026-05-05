@@ -1,47 +1,23 @@
 import { config } from "../config.ts";
 import type { DiscordMessage } from "./messageTypes.ts";
 
-const SE_SUFFIX_REGEX = /^.+se$/i;
-const INVALID_PREFIX_REGEX = /^invalid.+$/i;
-const HEX_REGEX = /^0x.+$/i;
-const NATHAN_PREFIX_REGEX = /^nathan.+$/i;
-const SNAIL_SUFFIX_REGEX = /^.+snail$/i;
-
-export function matchesInvalidSE(text: string): boolean {
+export function findNicknameChange(text: string): string | null {
 	const content = text.trim();
-	return SE_SUFFIX_REGEX.test(content) || INVALID_PREFIX_REGEX.test(content);
-}
-
-export function matchesHex(text: string): boolean {
-	return HEX_REGEX.test(text.trim());
-}
-
-export function matchesNathan(text: string): boolean {
-	const content = text.trim();
-	return (
-		NATHAN_PREFIX_REGEX.test(content) || SNAIL_SUFFIX_REGEX.test(content)
-	);
+	for (const { userId, patterns } of config.nicknameChanges) {
+		if (patterns.some((re) => re.test(content))) {
+			return userId;
+		}
+	}
+	return null;
 }
 
 export async function handleNicknameChanges(
 	message: DiscordMessage,
 ): Promise<void> {
 	const text = (message?.content ?? "").trim();
-
-	if (matchesInvalidSE(text)) {
-		await changeNickname(message, config.users.invalidSeUserId, text);
-		return;
-	}
-
-	if (matchesHex(text)) {
-		await changeNickname(message, config.users.hexperiodUserId, text);
-		return;
-	}
-
-	if (matchesNathan(text)) {
-		await changeNickname(message, config.users.nathansnailUserId, text);
-		return;
-	}
+	const userId = findNicknameChange(text);
+	if (!userId) return;
+	await changeNickname(message, userId, text);
 }
 
 async function changeNickname(

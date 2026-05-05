@@ -1,127 +1,120 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
 import {
-	matchesInvalidSE,
-	matchesHex,
-	matchesNathan,
+	findNicknameChange,
 	handleNicknameChanges,
 } from "../lib/nicknameChange.ts";
 import { createMockMessage } from "./mocks/message.ts";
 import { config } from "../config.ts";
 
-describe("matchesInvalidSE", () => {
-	describe("(word)SE pattern", () => {
-		it("matches a word ending in SE", () => {
-			assert(matchesInvalidSE("testSE"));
-			assert(matchesInvalidSE("InvalidSE"));
-			assert(matchesInvalidSE("ChrissSE"));
+const invalidSeUserId = config.nicknameChanges[0]!.userId;
+const hexperiodUserId = config.nicknameChanges[1]!.userId;
+const nathansnailUserId = config.nicknameChanges[2]!.userId;
+
+describe("findNicknameChange", () => {
+	describe("InvalidSE patterns", () => {
+		it("returns InvalidSE userId on (word)SE", () => {
+			assert.strictEqual(findNicknameChange("testSE"), invalidSeUserId);
+			assert.strictEqual(
+				findNicknameChange("InvalidSE"),
+				invalidSeUserId,
+			);
+			assert.strictEqual(findNicknameChange("ChrissSE"), invalidSeUserId);
 		});
-		it("matches strings with spaces ending in SE", () => {
-			assert(matchesInvalidSE("test case SE"));
-			assert(matchesInvalidSE("hello world se"));
+		it("returns InvalidSE userId on strings with spaces ending in SE", () => {
+			assert.strictEqual(
+				findNicknameChange("test case SE"),
+				invalidSeUserId,
+			);
+		});
+		it("returns InvalidSE userId on Invalid(word)", () => {
+			assert.strictEqual(
+				findNicknameChange("InvalidBot"),
+				invalidSeUserId,
+			);
+			assert.strictEqual(
+				findNicknameChange("Invalid bot token"),
+				invalidSeUserId,
+			);
 		});
 		it("matches case-insensitively", () => {
-			assert(matchesInvalidSE("testse"));
-			assert(matchesInvalidSE("TESTse"));
+			assert.strictEqual(findNicknameChange("testse"), invalidSeUserId);
+			assert.strictEqual(
+				findNicknameChange("invalidbot"),
+				invalidSeUserId,
+			);
 		});
-		it("does not match SE alone", () => {
-			assert.strictEqual(matchesInvalidSE("SE"), false);
+		it("returns null for SE alone", () => {
+			assert.strictEqual(findNicknameChange("SE"), null);
+		});
+		it("returns null for Invalid alone", () => {
+			assert.strictEqual(findNicknameChange("Invalid"), null);
 		});
 	});
 
-	describe("Invalid(word) pattern", () => {
-		it("matches a word starting with Invalid", () => {
-			assert(matchesInvalidSE("InvalidBot"));
-			assert(matchesInvalidSE("InvalidToken"));
-			assert(matchesInvalidSE("InvalidSE"));
-		});
-		it("matches strings with spaces after Invalid", () => {
-			assert(matchesInvalidSE("Invalid bot token"));
-			assert(matchesInvalidSE("Invalid user name"));
+	describe("hexperiod patterns", () => {
+		it("returns hexperiod userId on 0x(anything)", () => {
+			assert.strictEqual(findNicknameChange("0xhello"), hexperiodUserId);
+			assert.strictEqual(findNicknameChange("0xhex."), hexperiodUserId);
+			assert.strictEqual(
+				findNicknameChange("0xhello world"),
+				hexperiodUserId,
+			);
 		});
 		it("matches case-insensitively", () => {
-			assert(matchesInvalidSE("invalidbot"));
-			assert(matchesInvalidSE("INVALIDBOT"));
+			assert.strictEqual(findNicknameChange("0XHELLO"), hexperiodUserId);
 		});
-		it("does not match Invalid alone", () => {
-			assert.strictEqual(matchesInvalidSE("Invalid"), false);
+		it("returns null for 0x alone", () => {
+			assert.strictEqual(findNicknameChange("0x"), null);
+		});
+	});
+
+	describe("nathansnail patterns", () => {
+		it("returns nathansnail userId on nathan(anything)", () => {
+			assert.strictEqual(
+				findNicknameChange("nathancool"),
+				nathansnailUserId,
+			);
+			assert.strictEqual(
+				findNicknameChange("nathan cool person"),
+				nathansnailUserId,
+			);
+		});
+		it("returns nathansnail userId on (anything)Snail", () => {
+			assert.strictEqual(
+				findNicknameChange("coolSnail"),
+				nathansnailUserId,
+			);
+			assert.strictEqual(
+				findNicknameChange("cool little snail"),
+				nathansnailUserId,
+			);
+		});
+		it("matches case-insensitively", () => {
+			assert.strictEqual(
+				findNicknameChange("NATHANCOOL"),
+				nathansnailUserId,
+			);
+			assert.strictEqual(
+				findNicknameChange("TESTSNAIL"),
+				nathansnailUserId,
+			);
+		});
+		it("returns null for nathan alone", () => {
+			assert.strictEqual(findNicknameChange("nathan"), null);
+		});
+		it("returns null for snail alone", () => {
+			assert.strictEqual(findNicknameChange("snail"), null);
 		});
 	});
 
 	describe("non-matching content", () => {
-		it("does not match unrelated words", () => {
-			assert.strictEqual(matchesInvalidSE("hello"), false);
-			assert.strictEqual(matchesInvalidSE("nathancool"), false);
-			assert.strictEqual(matchesInvalidSE("0xhello"), false);
+		it("returns null for unrelated words", () => {
+			assert.strictEqual(findNicknameChange("hello"), null);
+			assert.strictEqual(findNicknameChange("hello world"), null);
 		});
-		it("does not match empty string", () => {
-			assert.strictEqual(matchesInvalidSE(""), false);
-		});
-	});
-});
-
-describe("matchesHex", () => {
-	it("matches 0x followed by a word", () => {
-		assert(matchesHex("0xhello"));
-		assert(matchesHex("0xtest"));
-		assert(matchesHex("0xhex."));
-	});
-	it("matches 0x followed by a string with spaces", () => {
-		assert(matchesHex("0xhello world"));
-		assert(matchesHex("0x some value"));
-	});
-	it("matches case-insensitively", () => {
-		assert(matchesHex("0XHELLO"));
-		assert(matchesHex("0Xtest"));
-	});
-	it("does not match 0x alone", () => {
-		assert.strictEqual(matchesHex("0x"), false);
-	});
-	it("does not match unrelated words", () => {
-		assert.strictEqual(matchesHex("hello"), false);
-		assert.strictEqual(matchesHex("InvalidBot"), false);
-		assert.strictEqual(matchesHex("nathancool"), false);
-	});
-});
-
-describe("matchesNathan", () => {
-	it("matches nathan followed by a word", () => {
-		assert(matchesNathan("nathancool"));
-		assert(matchesNathan("nathansnail"));
-		assert(matchesNathan("nathanbot"));
-	});
-	it("matches nathan followed by a string with spaces", () => {
-		assert(matchesNathan("nathan cool person"));
-		assert(matchesNathan("nathan is here"));
-	});
-	it("matches case-insensitively", () => {
-		assert(matchesNathan("NATHANCOOL"));
-		assert(matchesNathan("NathanCool"));
-	});
-	it("does not match nathan alone", () => {
-		assert.strictEqual(matchesNathan("nathan"), false);
-	});
-	it("does not match unrelated words", () => {
-		assert.strictEqual(matchesNathan("hello"), false);
-		assert.strictEqual(matchesNathan("testSE"), false);
-		assert.strictEqual(matchesNathan("0xhello"), false);
-	});
-
-	describe("(word)Snail pattern", () => {
-		it("matches a word ending in Snail", () => {
-			assert(matchesNathan("nathansnail"));
-			assert(matchesNathan("coolSnail"));
-			assert(matchesNathan("testsnail"));
-		});
-		it("matches strings with spaces ending in Snail", () => {
-			assert(matchesNathan("cool little snail"));
-		});
-		it("matches case-insensitively", () => {
-			assert(matchesNathan("TESTSNAIL"));
-			assert(matchesNathan("TestSnail"));
-		});
-		it("does not match snail alone", () => {
-			assert.strictEqual(matchesNathan("snail"), false);
+		it("returns null for empty string", () => {
+			assert.strictEqual(findNicknameChange(""), null);
 		});
 	});
 });
@@ -132,7 +125,7 @@ describe("handleNicknameChanges", () => {
 		const message = createMockMessage({
 			content: "testSE",
 			guildMembers: {
-				[config.users.invalidSeUserId]: {
+				[invalidSeUserId]: {
 					setNickname: async (n) => {
 						changedNickname = n;
 					},
@@ -148,7 +141,7 @@ describe("handleNicknameChanges", () => {
 		const message = createMockMessage({
 			content: "InvalidBot",
 			guildMembers: {
-				[config.users.invalidSeUserId]: {
+				[invalidSeUserId]: {
 					setNickname: async (n) => {
 						changedNickname = n;
 					},
@@ -164,7 +157,7 @@ describe("handleNicknameChanges", () => {
 		const message = createMockMessage({
 			content: "0xhello",
 			guildMembers: {
-				[config.users.hexperiodUserId]: {
+				[hexperiodUserId]: {
 					setNickname: async (n) => {
 						changedNickname = n;
 					},
@@ -180,7 +173,7 @@ describe("handleNicknameChanges", () => {
 		const message = createMockMessage({
 			content: "nathancool",
 			guildMembers: {
-				[config.users.nathansnailUserId]: {
+				[nathansnailUserId]: {
 					setNickname: async (n) => {
 						changedNickname = n;
 					},
@@ -196,7 +189,7 @@ describe("handleNicknameChanges", () => {
 		const message = createMockMessage({
 			content: "coolSnail",
 			guildMembers: {
-				[config.users.nathansnailUserId]: {
+				[nathansnailUserId]: {
 					setNickname: async (n) => {
 						changedNickname = n;
 					},
@@ -217,9 +210,9 @@ describe("handleNicknameChanges", () => {
 		const message = createMockMessage({
 			content: "hello world",
 			guildMembers: {
-				[config.users.invalidSeUserId]: memberMock,
-				[config.users.hexperiodUserId]: memberMock,
-				[config.users.nathansnailUserId]: memberMock,
+				[invalidSeUserId]: memberMock,
+				[hexperiodUserId]: memberMock,
+				[nathansnailUserId]: memberMock,
 			},
 		});
 		await handleNicknameChanges(message);
@@ -239,9 +232,7 @@ describe("handleNicknameChanges", () => {
 				reactions.push(emoji);
 			},
 			guildMembers: {
-				[config.users.invalidSeUserId]: {
-					setNickname: async () => {},
-				},
+				[invalidSeUserId]: { setNickname: async () => {} },
 			},
 		});
 		await handleNicknameChanges(message);
@@ -256,7 +247,7 @@ describe("handleNicknameChanges", () => {
 				reactions.push(emoji);
 			},
 			guildMembers: {
-				[config.users.invalidSeUserId]: {
+				[invalidSeUserId]: {
 					setNickname: async () => {
 						throw new Error("Missing Permissions");
 					},
