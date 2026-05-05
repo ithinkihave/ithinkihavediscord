@@ -55,6 +55,20 @@ export const config = {
 		happyReactionEmoteId: "1489800033359364259",
 	},
 
+	/**
+	 * Discord User configurations for nickname-changing features
+	 */
+	users: {
+		// InvalidSE — nickname changes on (word)SE or Invalid(word) messages
+		invalidSeUserId: "261232467955023872",
+
+		// hexPeriod — nickname changes on 0x(word) messages
+		hexperiodUserId: "495780356302045195",
+
+		// NathanSnail — nickname changes on nathan(word) messages
+		nathansnailUserId: "553043214374928395",
+	},
+
 	truthCheck: {
 		// random responses for true/false truth-check replies
 		trueResponses,
