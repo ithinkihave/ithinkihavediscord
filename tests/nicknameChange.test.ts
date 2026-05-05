@@ -106,6 +106,24 @@ describe("matchesNathan", () => {
 		assert.strictEqual(matchesNathan("testSE"), false);
 		assert.strictEqual(matchesNathan("0xhello"), false);
 	});
+
+	describe("(word)Snail pattern", () => {
+		it("matches a word ending in Snail", () => {
+			assert(matchesNathan("nathansnail"));
+			assert(matchesNathan("coolSnail"));
+			assert(matchesNathan("testsnail"));
+		});
+		it("matches strings with spaces ending in Snail", () => {
+			assert(matchesNathan("cool little snail"));
+		});
+		it("matches case-insensitively", () => {
+			assert(matchesNathan("TESTSNAIL"));
+			assert(matchesNathan("TestSnail"));
+		});
+		it("does not match snail alone", () => {
+			assert.strictEqual(matchesNathan("snail"), false);
+		});
+	});
 });
 
 describe("handleNicknameChanges", () => {
@@ -171,6 +189,22 @@ describe("handleNicknameChanges", () => {
 		});
 		await handleNicknameChanges(message);
 		assert.strictEqual(changedNickname, "nathancool");
+	});
+
+	it("changes nathansnail nickname on (word)Snail message", async () => {
+		let changedNickname: string | undefined;
+		const message = createMockMessage({
+			content: "coolSnail",
+			guildMembers: {
+				[config.users.nathansnailUserId]: {
+					setNickname: async (n) => {
+						changedNickname = n;
+					},
+				},
+			},
+		});
+		await handleNicknameChanges(message);
+		assert.strictEqual(changedNickname, "coolSnail");
 	});
 
 	it("does nothing when no pattern matches", async () => {

@@ -4,7 +4,8 @@ import type { DiscordMessage } from "./messageTypes.ts";
 const SE_SUFFIX_REGEX = /^.+se$/i;
 const INVALID_PREFIX_REGEX = /^invalid.+$/i;
 const HEX_REGEX = /^0x.+$/i;
-const NATHAN_REGEX = /^nathan.+$/i;
+const NATHAN_PREFIX_REGEX = /^nathan.+$/i;
+const SNAIL_SUFFIX_REGEX = /^.+snail$/i;
 
 export function matchesInvalidSE(text: string): boolean {
 	const content = text.trim();
@@ -16,7 +17,10 @@ export function matchesHex(text: string): boolean {
 }
 
 export function matchesNathan(text: string): boolean {
-	return NATHAN_REGEX.test(text.trim());
+	const content = text.trim();
+	return (
+		NATHAN_PREFIX_REGEX.test(content) || SNAIL_SUFFIX_REGEX.test(content)
+	);
 }
 
 export async function handleNicknameChanges(
