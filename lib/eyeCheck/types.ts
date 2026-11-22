@@ -31,7 +31,7 @@ export type EyeMatch = {
 };
 
 export type DetectionTask = {
-	bytes: Buffer;
+	bytes: Uint8Array;
 	mediaKind: MediaKind;
 	sourceLabel: string;
 	includeFrame?: boolean;

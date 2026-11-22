@@ -4,6 +4,8 @@ const MEDIA_HOSTS = new Set([
 	"images-ext-1.discordapp.net",
 	"images-ext-2.discordapp.net",
 	"media.tenor.com",
+	"media1.tenor.com",
+	"c.tenor.com",
 	"media.giphy.com",
 	"media0.giphy.com",
 	"media1.giphy.com",

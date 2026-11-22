@@ -94,7 +94,8 @@ In the 👀 channel (by configured ID, else any channel named `eyes` or `👀`),
     - **crt**: switched off like a cathode-ray telly of yore
     - **black hole**: drawn past the event horizon
 - text-only missives are held to the 👀 standard as well: those without a 👀 (or an eye-themed custom emoji or sticker) are likewise incinerated, whilst pins, joins and other system notices are spared; set `config.eyes.filterTextMessages` to `false` to police media alone
-- shouldst the media fail to download or decode, the missive is spared, for we incinerate only upon certainty
+- animated media is sampled at up to five frames, including animated WebP and APNG
+- the missive is spared if the scanner is busy or the media cannot be downloaded or decoded. Downloads use Discord’s media proxy or approved media hosts and have a 50 MiB limit
 - the animations ship as animated WebP, a third the weight of GIF; set `config.eyes.effectFormat` to `gif` should any client prove obstinate
 
 The `/eyescan` command doth let the cautious test their media beforehand, replying with the frame wherein the 👀 was found, boxed and scored.

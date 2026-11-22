@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { describe, it } from "node:test";
-import { readdir, readFile } from "node:fs/promises";
-import { availableParallelism } from "node:os";
+import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
+import { availableParallelism, tmpdir } from "node:os";
 import path from "node:path";
 import sharp from "sharp";
 import { config } from "../config.ts";
@@ -211,7 +212,7 @@ describe("eyes media checks", () => {
 			"tests/fixtures/eyes/contains/seal-lets-take-a-look.mp4",
 		);
 		const blank = await readFile("tests/fixtures/eyes/no-eyes/image.png");
-		const link = "https://media.tenor.com/abc/eyes.mp4";
+		const link = "https://media1.tenor.com/abc/eyes.mp4";
 		t.mock.method(
 			globalThis,
 			"fetch",
@@ -283,6 +284,76 @@ describe("eyes media checks", () => {
 		const drawn = await sharp((await drawMatch(match))!).metadata();
 		assert.equal(drawn.width, match.frame.width);
 		assert.equal(drawn.height, match.frame.height);
+	});
+
+	it("finds eyes on the second frame of WebP and APNG animations", async (t) => {
+		const reference = await detectEyesInLocalMedia(
+			"tests/fixtures/eyes/contains/seal-lets-take-a-look.mp4",
+			{ includeFrame: true },
+		);
+		assert.ok(reference?.frame);
+		const { width, height, rgb } = reference.frame;
+		const frames = Buffer.concat([
+			Buffer.alloc(width * height * 3, 255),
+			rgb,
+		]);
+
+		const webp = await sharp(frames, {
+			raw: { width, height: height * 2, channels: 3, pageHeight: height },
+		})
+			.webp({ lossless: true, delay: [500, 500] })
+			.toBuffer();
+
+		const workspace = await mkdtemp(path.join(tmpdir(), "test-eyes-apng-"));
+		t.after(() => rm(workspace, { recursive: true, force: true }));
+		const apngPath = path.join(workspace, "animation.apng");
+		const encode = spawnSync(
+			"ffmpeg",
+			[
+				"-v",
+				"error",
+				"-f",
+				"rawvideo",
+				"-pixel_format",
+				"rgb24",
+				"-video_size",
+				`${width}x${height}`,
+				"-framerate",
+				"2",
+				"-i",
+				"pipe:0",
+				"-f",
+				"apng",
+				apngPath,
+			],
+			{ input: frames, encoding: "utf8", timeout: 15_000 },
+		);
+		assert.equal(encode.status, 0, encode.stderr);
+		const apng = await readFile(apngPath);
+
+		t.mock.method(
+			globalThis,
+			"fetch",
+			async (url: string) =>
+				new Response(
+					new Uint8Array(url.endsWith(".webp") ? webp : apng),
+				),
+		);
+		for (const [extension, type] of [
+			["webp", "image/webp"],
+			["png", "image/png"],
+		] as const) {
+			const result = await scanMediaUrl(
+				`https://cdn.discordapp.com/animation.${extension}`,
+				type,
+			);
+			assert.equal(
+				result?.match?.frameIndex,
+				1,
+				`later frame of ${extension}`,
+			);
+		}
+		assert.equal((await detectEyesInLocalMedia(apngPath))?.frameIndex, 1);
 	});
 
 	it("returns five evenly spaced timestamps", () => {

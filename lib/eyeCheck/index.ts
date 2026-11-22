@@ -37,6 +37,7 @@ const MEDIA_IMAGE_EXTENSIONS = new Set([
 ]);
 const MEDIA_ANIMATED_EXTENSIONS = new Set([
 	".gif",
+	".apng",
 	".mp4",
 	".webm",
 	".mov",
@@ -106,7 +107,10 @@ function inferMediaKind(
 	contentType: string | null,
 ): MediaKind | null {
 	const normalizedContentType = String(contentType ?? "").toLowerCase();
-	if (normalizedContentType.startsWith("image/gif")) {
+	if (
+		normalizedContentType.startsWith("image/gif") ||
+		normalizedContentType.startsWith("image/apng")
+	) {
 		return "animated";
 	}
 	if (normalizedContentType.startsWith("video/")) {
