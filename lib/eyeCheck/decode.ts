@@ -10,6 +10,7 @@ import type { MediaKind } from "./types.ts";
 export const MAX_DECODE_SIZE = 720;
 // Past this, decode keyframes only: seeking a long video beats decoding it all.
 const KEYFRAMES_ONLY_AFTER_SECONDS = 12;
+const DECODER_TIMEOUT_MS = 15_000;
 // A frame is a repeat of one already scanned when no cell of a 16x16
 // luminance thumbnail moved by this much (0-255). Max rather than mean, so a
 // small emoji popping into an otherwise static shot still counts as new.
@@ -121,6 +122,8 @@ async function probeMedia(sourcePath: string): Promise<Probe> {
 		"format=duration:stream=width,height:stream_side_data=rotation",
 		"-of",
 		"json",
+		"-protocol_whitelist",
+		"file",
 		sourcePath,
 	]);
 	const parsed = JSON.parse(output.toString()) as {
@@ -172,6 +175,8 @@ async function* streamFrames(
 			"-v",
 			"error",
 			...(keyframesOnly ? ["-skip_frame", "nokey"] : []),
+			"-protocol_whitelist",
+			"file",
 			"-i",
 			sourcePath,
 			"-vf",
@@ -188,7 +193,11 @@ async function* streamFrames(
 			"image2pipe",
 			"pipe:1",
 		],
-		{ stdio: ["ignore", "pipe", "pipe"] },
+		{
+			stdio: ["ignore", "pipe", "pipe"],
+			timeout: DECODER_TIMEOUT_MS,
+			killSignal: "SIGKILL",
+		},
 	);
 
 	let stderr = "";
@@ -207,7 +216,7 @@ async function* streamFrames(
 			yield flattenOnWhite(frame);
 		}
 		const code = await exited;
-		if (code !== 0 && yielded === 0) {
+		if (code !== 0 || yielded === 0) {
 			throw new Error(`ffmpeg failed (${code}): ${stderr.trim()}`);
 		}
 	} finally {
@@ -351,7 +360,10 @@ function maxAbsoluteDifference(a: Float32Array, b: Float32Array): number {
 
 function collectProcess(command: string, args: string[]): Promise<Buffer> {
 	return new Promise((resolve, reject) => {
-		const child = spawn(command, args);
+		const child = spawn(command, args, {
+			timeout: DECODER_TIMEOUT_MS,
+			killSignal: "SIGKILL",
+		});
 		const stdout: Buffer[] = [];
 		let stderr = "";
 		child.stdout.on("data", (chunk: Buffer) => stdout.push(chunk));

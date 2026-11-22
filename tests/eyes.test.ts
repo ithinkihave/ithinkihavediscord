@@ -1,16 +1,20 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { readdir, readFile } from "node:fs/promises";
+import { availableParallelism } from "node:os";
 import path from "node:path";
 import sharp from "sharp";
 import { config } from "../config.ts";
+import { downloadMedia } from "../lib/eyeCheck/download.ts";
 import {
 	collectMediaTargetsFromMessage,
 	detectEyesInLocalMedia,
 	EYES_DETECTION_THRESHOLD,
+	EyesScanBusyError,
 	getEvenlySpacedTimestamps,
 	handleEyesMediaCheck,
 	isEyesChannelMessage,
+	scanMediaUrl,
 	textContainsEyes,
 } from "../lib/eyeCheck/index.ts";
 import { drawMatch } from "../lib/eyeScan.ts";
@@ -58,7 +62,11 @@ describe("eyes media checks", () => {
 			],
 			embeds: [
 				{
-					image: { url: "https://example.com/embedded.gif" },
+					image: {
+						url: "https://example.com/embedded.gif",
+						proxyURL:
+							"https://images-ext-1.discordapp.net/external/image",
+					},
 				},
 			],
 		});
@@ -70,8 +78,79 @@ describe("eyes media checks", () => {
 				url: "https://cdn.discordapp.com/test/video.mp4",
 				kind: "animated",
 			},
-			{ url: "https://example.com/embedded.gif", kind: "animated" },
+			{
+				url: "https://images-ext-1.discordapp.net/external/image",
+				kind: "animated",
+			},
 		]);
+	});
+
+	it("rejects external media hosts and disables redirects for approved hosts", async (t) => {
+		const fetch = t.mock.method(
+			globalThis,
+			"fetch",
+			async () => new Response("media"),
+		);
+		await assert.rejects(
+			downloadMedia("https://example.com/image.png"),
+			/approved hosts/,
+		);
+		assert.equal(fetch.mock.callCount(), 0);
+		assert.equal(
+			String(await downloadMedia("https://cdn.discordapp.com/image.png")),
+			"media",
+		);
+		assert.equal(fetch.mock.calls[0]?.arguments[1]?.redirect, "error");
+	});
+
+	it("cancels downloads that exceed the byte cap without a length header", async (t) => {
+		const chunk = new Uint8Array(1024 * 1024);
+		let cancelled = false;
+		t.mock.method(
+			globalThis,
+			"fetch",
+			async () =>
+				new Response(
+					new ReadableStream({
+						pull(controller) {
+							controller.enqueue(chunk);
+						},
+						cancel() {
+							cancelled = true;
+						},
+					}),
+				),
+		);
+		await assert.rejects(
+			downloadMedia("https://cdn.discordapp.com/image.png"),
+			/50 MiB/,
+		);
+		assert.equal(cancelled, true);
+	});
+
+	it("rejects work before downloading when all scan slots are occupied", async (t) => {
+		let finishDownload!: (response: Response) => void;
+		const pendingDownload = new Promise<Response>((resolve) => {
+			finishDownload = resolve;
+		});
+		const fetch = t.mock.method(globalThis, "fetch", () => pendingDownload);
+		const concurrency = Math.min(4, availableParallelism());
+		const url = "https://cdn.discordapp.com/image.png";
+		const active = Promise.allSettled(
+			Array.from({ length: concurrency }, () =>
+				scanMediaUrl(url, "image/png"),
+			),
+		);
+		try {
+			await assert.rejects(
+				scanMediaUrl(url, "image/png"),
+				EyesScanBusyError,
+			);
+			assert.equal(fetch.mock.callCount(), concurrency);
+		} finally {
+			finishDownload(new Response(null, { status: 404 }));
+			await active;
+		}
 	});
 
 	it("scans one target per embed, preferring video over its thumbnail", () => {

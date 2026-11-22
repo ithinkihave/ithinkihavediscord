@@ -11,9 +11,9 @@ export type MockMessageOptions = {
 		spoiler?: boolean;
 	}>;
 	embeds?: Array<{
-		image?: { url?: string };
-		thumbnail?: { url?: string };
-		video?: { url?: string };
+		image?: { url?: string; proxyURL?: string };
+		thumbnail?: { url?: string; proxyURL?: string };
+		video?: { url?: string; proxyURL?: string };
 		url?: string;
 	}>;
 	stickers?: Array<{ url: string; format: number; name?: string }>;
