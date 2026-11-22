@@ -1,11 +1,12 @@
 import { MessageType } from "discord.js";
 import { config } from "../../config.ts";
 import type { DiscordMessage } from "../messageTypes.ts";
-import { incinerateMessage } from "../incinerate/index.ts";
+import { incinerateMessage, messageVersion } from "../incinerate/index.ts";
 import { readFile } from "node:fs/promises";
 import { availableParallelism } from "node:os";
 import path from "node:path";
 import { Piscina } from "piscina";
+import { downloadMedia, isTrustedMediaUrl } from "./download.ts";
 import {
 	type DetectionTask,
 	type EyeMatch,
@@ -21,8 +22,7 @@ export type { EyeMatch, MediaKind, MediaTarget };
 const EYES_REACTION = "👀";
 const EYES_EMOJI = "👀";
 const EYES_CHANNEL_FALLBACK_NAMES = new Set(["eyes", "👀"]);
-const MAX_MEDIA_BYTES = 50 * 1024 * 1024;
-const DOWNLOAD_TIMEOUT_MS = 15_000;
+const MAX_ACTIVE_SCANS = Math.min(4, availableParallelism());
 // link embeds (tenor, giphy...) often land in a later edit, not on create
 const EMBED_WAIT_MS = 1_500;
 const EMBED_WAIT_ATTEMPTS = 2;
@@ -37,6 +37,7 @@ const MEDIA_IMAGE_EXTENSIONS = new Set([
 ]);
 const MEDIA_ANIMATED_EXTENSIONS = new Set([
 	".gif",
+	".apng",
 	".mp4",
 	".webm",
 	".mov",
@@ -60,19 +61,33 @@ const detectionPool = new Piscina<DetectionTask, EyeMatch | null>({
 	filename: new URL("./worker.ts", import.meta.url).href,
 	execArgv: ["--import", "tsx/esm"],
 	idleTimeout: 30_000,
-	// each worker holds its own templates and model; a scan is well under a
-	// second now, so a few workers keep up with any channel
-	maxThreads: Math.min(4, availableParallelism()),
+	maxThreads: MAX_ACTIVE_SCANS,
+	maxQueue: 32,
 });
 
-type TargetResult =
-	| { target: MediaTarget; bytes: Buffer; match: EyeMatch | null }
-	| { target: MediaTarget; error: unknown };
+let activeScans = 0;
+
+export class EyesScanBusyError extends Error {}
+
+async function withScanSlot<T>(
+	scan: () => Promise<T>,
+	whenBusy: () => T,
+): Promise<T> {
+	if (activeScans >= MAX_ACTIVE_SCANS) {
+		return whenBusy();
+	}
+	activeScans += 1;
+	try {
+		return await scan();
+	} finally {
+		activeScans -= 1;
+	}
+}
 
 export function isEyesChannelMessage(message: DiscordMessage): boolean {
 	const configuredChannelId = config.channels.eyesChannelId;
-	if (configuredChannelId && message.channel?.id === configuredChannelId) {
-		return true;
+	if (configuredChannelId) {
+		return message.channel?.id === configuredChannelId;
 	}
 
 	const channelName =
@@ -92,7 +107,10 @@ function inferMediaKind(
 	contentType: string | null,
 ): MediaKind | null {
 	const normalizedContentType = String(contentType ?? "").toLowerCase();
-	if (normalizedContentType.startsWith("image/gif")) {
+	if (
+		normalizedContentType.startsWith("image/gif") ||
+		normalizedContentType.startsWith("image/apng")
+	) {
 		return "animated";
 	}
 	if (normalizedContentType.startsWith("video/")) {
@@ -133,14 +151,25 @@ export function collectMediaTargetsFromMessage(
 		// one target per embed: a tenor embed's thumbnail is just a still of
 		// its video, so scanning both doubles the work for nothing
 		const candidates = [
-			embed.video?.url,
-			embed.image?.url,
-			embed.thumbnail?.url,
-			embed.url,
-		];
+			{ asset: embed.video, kind: "animated" },
+			{ asset: embed.image, kind: "image" },
+			{ asset: embed.thumbnail, kind: "image" },
+			{ asset: { url: embed.url, proxyURL: undefined }, kind: null },
+		] as const;
 
-		for (const url of candidates) {
-			const mediaKind = url ? inferMediaKind(url, null) : null;
+		for (const { asset, kind } of candidates) {
+			if (!asset) {
+				continue;
+			}
+			const { url: source, proxyURL } = asset;
+			const url =
+				proxyURL && isTrustedMediaUrl(proxyURL)
+					? proxyURL
+					: (source ?? proxyURL);
+			const mediaKind =
+				(source && inferMediaKind(source, null)) ||
+				(url && inferMediaKind(url, null)) ||
+				(url && isTrustedMediaUrl(url) && kind);
 			if (url && mediaKind) {
 				targets.set(url, mediaKind);
 				break;
@@ -181,131 +210,78 @@ function isUserPost(message: DiscordMessage): boolean {
 export async function handleEyesMediaCheck(
 	message: DiscordMessage,
 ): Promise<boolean> {
-	if (!isEyesChannelMessage(message)) {
+	if (!isEyesChannelMessage(message) || !isUserPost(message)) {
 		return false;
 	}
+	return withScanSlot(
+		() => checkEyesMessage(message),
+		() => true,
+	);
+}
 
-	let targets = collectMediaTargetsFromMessage(message);
-	if (targets.length === 0 && hasUnresolvedLink(message)) {
-		message = await waitForEmbeds(message);
-		targets = collectMediaTargetsFromMessage(message);
+async function checkEyesMessage(message: DiscordMessage): Promise<boolean> {
+	if (hasUnresolvedLink(message)) {
+		const refreshed = await waitForEmbeds(message);
+		if (!refreshed) {
+			return true;
+		}
+		message = refreshed;
 	}
 
+	const targets = collectMediaTargetsFromMessage(message);
+	const incineration = {
+		expectedVersion: messageVersion(message),
+		timeZone: config.eyes.timeZone,
+		format: config.eyes.effectFormat,
+	};
+
 	if (targets.length === 0) {
-		if (
-			!config.eyes.filterTextMessages ||
-			!isUserPost(message) ||
-			messageTextHasEyes(message)
-		) {
+		if (!config.eyes.filterTextMessages || messageTextHasEyes(message)) {
 			return false;
 		}
 		console.log("[bot] text-only post without eyes, incinerating");
-		await incinerateMessage(message, {
-			timeZone: config.eyes.timeZone,
-			format: config.eyes.effectFormat,
-		});
+		await incinerateMessage(message, incineration);
 		return true;
 	}
 
 	const scanStartedAt = performance.now();
-	const outcome = await scanUntilFirstMatch(targets);
-	const scanMs = Math.round(performance.now() - scanStartedAt);
-
-	if (outcome.hit) {
-		const { match, target } = outcome.hit;
-		console.log(
-			`[bot] eyes match in ${scanMs}ms: ${match.templateName} frame=${match.frameIndex} score=${match.score.toFixed(3)} corr=${match.correlation.toFixed(3)} colorΔ=${match.colorDistance.toFixed(1)} source=${target.url}`,
-		);
-		await message.react(EYES_REACTION);
-		return true;
-	}
-
-	const failed = outcome.results.filter((result) => "error" in result);
-	if (failed.length > 0) {
-		// can't prove there are no eyes, so the post lives
-		for (const result of failed) {
-			console.error(
-				`[bot] eyes scan failed for ${result.target.url}`,
-				"error" in result ? result.error : undefined,
-			);
+	let scanFailed = false;
+	let preview: { bytes: Buffer; sourceLabel: string } | undefined;
+	for (const target of targets) {
+		let bytes: Buffer;
+		let match: EyeMatch | null;
+		try {
+			bytes = await downloadMedia(target.url);
+			match = await runDetection(bytes, target.kind, target.url);
+		} catch (error) {
+			scanFailed = true;
+			console.error("[bot] eyes scan failed", error);
+			continue;
 		}
+		if (match) {
+			const scanMs = Math.round(performance.now() - scanStartedAt);
+			console.log(
+				`[bot] eyes match in ${scanMs}ms: ${match.templateName} frame=${match.frameIndex} score=${match.score.toFixed(3)} corr=${match.correlation.toFixed(3)} colorΔ=${match.colorDistance.toFixed(1)}`,
+			);
+			await message.react(EYES_REACTION);
+			return true;
+		}
+		preview ??= { bytes, sourceLabel: target.url };
+	}
+	if (scanFailed) {
+		// can't prove there are no eyes, so the post lives
 		return true;
 	}
 
+	const scanMs = Math.round(performance.now() - scanStartedAt);
 	console.log(
 		`[bot] no eyes in ${scanMs}ms across ${targets.length} media, incinerating`,
 	);
-	const firstScanned = outcome.results.find((result) => "bytes" in result);
 	await incinerateMessage(message, {
-		media:
-			firstScanned && "bytes" in firstScanned
-				? {
-						bytes: firstScanned.bytes,
-						sourceLabel: firstScanned.target.url,
-					}
-				: null,
-		timeZone: config.eyes.timeZone,
-		format: config.eyes.effectFormat,
+		...incineration,
+		media: preview,
 	});
 	return true;
-}
-
-/**
- * Scans every target in parallel but settles as soon as one has eyes; the
- * rest are irrelevant at that point.
- */
-function scanUntilFirstMatch(targets: MediaTarget[]): Promise<{
-	hit: { target: MediaTarget; match: EyeMatch } | null;
-	results: TargetResult[];
-}> {
-	return new Promise((resolve) => {
-		const results: TargetResult[] = [];
-		let settled = false;
-
-		for (const target of targets) {
-			scanTarget(target).then((result) => {
-				results.push(result);
-				if (settled) {
-					return;
-				}
-				if ("match" in result && result.match) {
-					settled = true;
-					resolve({ hit: { target, match: result.match }, results });
-				} else if (results.length === targets.length) {
-					settled = true;
-					resolve({ hit: null, results });
-				}
-			});
-		}
-	});
-}
-
-async function scanTarget(target: MediaTarget): Promise<TargetResult> {
-	try {
-		const bytes = await downloadMedia(target.url);
-		const match = await runDetection(bytes, target.kind, target.url);
-		return { target, bytes, match };
-	} catch (error) {
-		return { target, error };
-	}
-}
-
-async function downloadMedia(url: string): Promise<Buffer> {
-	const response = await fetch(url, {
-		signal: AbortSignal.timeout(DOWNLOAD_TIMEOUT_MS),
-	});
-	if (!response.ok) {
-		throw new Error(
-			`failed downloading media: ${response.status} ${response.statusText}`,
-		);
-	}
-
-	const declaredLength = Number(response.headers.get("content-length"));
-	if (declaredLength > MAX_MEDIA_BYTES) {
-		throw new Error(`media too large: ${declaredLength} bytes`);
-	}
-
-	return Buffer.from(await response.arrayBuffer());
 }
 
 function hasUnresolvedLink(message: DiscordMessage): boolean {
@@ -316,15 +292,16 @@ function hasUnresolvedLink(message: DiscordMessage): boolean {
 	);
 }
 
-async function waitForEmbeds(message: DiscordMessage): Promise<DiscordMessage> {
+async function waitForEmbeds(
+	message: DiscordMessage,
+): Promise<DiscordMessage | null> {
 	let current = message;
 	for (let attempt = 0; attempt < EMBED_WAIT_ATTEMPTS; attempt += 1) {
 		await new Promise((resolve) => setTimeout(resolve, EMBED_WAIT_MS));
 		try {
 			current = await current.fetch(true);
 		} catch {
-			// deleted while we waited, or no access; nothing to do
-			return current;
+			return null;
 		}
 		if (current.embeds.length > 0) {
 			break;
@@ -347,8 +324,17 @@ export async function scanMediaUrl(
 		return null;
 	}
 
-	const bytes = await downloadMedia(url);
-	return { match: await runDetection(bytes, mediaKind, url, options) };
+	return withScanSlot(
+		async () => {
+			const bytes = await downloadMedia(url);
+			return {
+				match: await runDetection(bytes, mediaKind, url, options),
+			};
+		},
+		() => {
+			throw new EyesScanBusyError("media scan capacity reached");
+		},
+	);
 }
 
 export async function detectEyesInLocalMedia(

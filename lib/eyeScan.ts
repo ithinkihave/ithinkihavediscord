@@ -4,7 +4,11 @@ import type {
 	CommandName,
 	NamedChatInputCommandInteraction,
 } from "./commandTypes.ts";
-import { type EyeMatch, scanMediaUrl } from "./eyeCheck/index.ts";
+import {
+	type EyeMatch,
+	EyesScanBusyError,
+	scanMediaUrl,
+} from "./eyeCheck/index.ts";
 
 const BOX_COLOR = "#fee75c";
 const BOX_PADDING = 4;
@@ -32,11 +36,24 @@ export async function handleEyescanCommand(
 	const attachment = interaction.options.getAttachment("media", true);
 	await interaction.deferReply();
 
-	const scan = await scanMediaUrl(
-		attachment.url,
-		attachment.contentType ?? null,
-		{ includeFrame: true },
-	);
+	let scan: Awaited<ReturnType<typeof scanMediaUrl>>;
+	try {
+		scan = await scanMediaUrl(
+			attachment.url,
+			attachment.contentType ?? null,
+			{
+				includeFrame: true,
+			},
+		);
+	} catch (error) {
+		if (!(error instanceof EyesScanBusyError)) {
+			throw error;
+		}
+		await interaction.editReply(
+			"👀 scanner is busy. Try again in a moment.",
+		);
+		return;
+	}
 
 	if (!scan) {
 		await interaction.editReply("That's not an image, gif or video.");

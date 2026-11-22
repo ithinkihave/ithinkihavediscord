@@ -10,12 +10,14 @@ import type { MediaKind } from "./types.ts";
 export const MAX_DECODE_SIZE = 720;
 // Past this, decode keyframes only: seeking a long video beats decoding it all.
 const KEYFRAMES_ONLY_AFTER_SECONDS = 12;
+const DECODER_TIMEOUT_MS = 15_000;
 // A frame is a repeat of one already scanned when no cell of a 16x16
 // luminance thumbnail moved by this much (0-255). Max rather than mean, so a
 // small emoji popping into an otherwise static shot still counts as new.
 const DUPLICATE_FRAME_DIFF = 3;
 const SIGNATURE_SIZE = 16;
 const PAM_HEADER_END = "ENDHDR\n";
+const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 
 export type RgbFrame = {
 	width: number;
@@ -44,25 +46,40 @@ export async function decodeMedia(
 	sourceLabel: string,
 	maxFrames: number,
 ): Promise<DecodedMedia> {
-	if (mediaKind === "image") {
-		return decodeImage(bytes);
+	const apngFrameCount = readApngFrameCount(bytes);
+	const isWebp =
+		bytes.toString("latin1", 0, 4) === "RIFF" &&
+		bytes.toString("latin1", 8, 12) === "WEBP";
+	if (isWebp || (apngFrameCount === null && mediaKind === "image")) {
+		return decodeImage(bytes, maxFrames);
 	}
 
 	const workspace = await mkdtemp(path.join(tmpdir(), "eyes-check-"));
 	try {
 		const extension =
-			path.extname(sourceLabel.split("?")[0] ?? "") || ".bin";
+			apngFrameCount === null
+				? path.extname(sourceLabel.split("?")[0] ?? "") || ".bin"
+				: ".apng";
 		const sourcePath = path.join(workspace, `source${extension}`);
 		await writeFile(sourcePath, bytes);
 		const probe = await probeMedia(sourcePath).catch(() => null);
+		const frameIndices =
+			apngFrameCount === null
+				? null
+				: sampleFrameIndices(apngFrameCount, maxFrames);
+		const frames = streamFrames(
+			sourcePath,
+			probe,
+			maxFrames,
+			extension,
+			frameIndices,
+		);
 
 		return {
 			sourceWidth: probe?.width ?? 0,
 			sourceHeight: probe?.height ?? 0,
 			frames: withCleanup(
-				dropDuplicateFrames(
-					streamFrames(sourcePath, probe, maxFrames, extension),
-				),
+				frameIndices ? frames : dropDuplicateFrames(frames),
 				() => rm(workspace, { recursive: true, force: true }),
 			),
 		};
@@ -72,10 +89,59 @@ export async function decodeMedia(
 	}
 }
 
-async function decodeImage(bytes: Buffer): Promise<DecodedMedia> {
-	const image = sharp(bytes);
-	const metadata = await image.metadata();
-	const { data, info } = await image
+function readApngFrameCount(bytes: Buffer): number | null {
+	if (!bytes.subarray(0, PNG_SIGNATURE.length).equals(PNG_SIGNATURE)) {
+		return null;
+	}
+	// APNG's animation control chunk precedes the first image data chunk.
+	for (let offset = PNG_SIGNATURE.length; offset + 12 <= bytes.length; ) {
+		const size = bytes.readUInt32BE(offset);
+		const type = bytes.toString("ascii", offset + 4, offset + 8);
+		const next = offset + 12 + size;
+		if (type === "acTL") {
+			if (size !== 8 || next > bytes.length) {
+				throw new Error("invalid APNG animation control chunk");
+			}
+			const count = bytes.readUInt32BE(offset + 8);
+			if (count === 0) {
+				throw new Error("APNG has no frames");
+			}
+			return count;
+		}
+		if (type === "IDAT" || next > bytes.length) {
+			break;
+		}
+		offset = next;
+	}
+	return null;
+}
+
+function sampleFrameIndices(frameCount: number, maxFrames: number): number[] {
+	const count = Math.min(frameCount, maxFrames);
+	return Array.from({ length: count }, (_, index) =>
+		count === 1 ? 0 : Math.round((index * (frameCount - 1)) / (count - 1)),
+	);
+}
+
+async function decodeImage(
+	bytes: Buffer,
+	maxFrames: number,
+): Promise<DecodedMedia> {
+	const metadata = await sharp(bytes).metadata();
+	const pages = sampleFrameIndices(metadata.pages ?? 1, maxFrames);
+	return {
+		sourceWidth: metadata.width ?? 0,
+		sourceHeight: metadata.pageHeight ?? metadata.height ?? 0,
+		frames: (async function* () {
+			for (const page of pages) {
+				yield await decodeImagePage(bytes, page);
+			}
+		})(),
+	};
+}
+
+async function decodeImagePage(bytes: Buffer, page: number): Promise<RgbFrame> {
+	const { data, info } = await sharp(bytes, { page, pages: 1 })
 		.resize({
 			width: MAX_DECODE_SIZE,
 			height: MAX_DECODE_SIZE,
@@ -88,14 +154,7 @@ async function decodeImage(bytes: Buffer): Promise<DecodedMedia> {
 		.raw()
 		.toBuffer({ resolveWithObject: true });
 
-	const frame = { width: info.width, height: info.height, rgb: data };
-	return {
-		sourceWidth: metadata.width ?? info.width,
-		sourceHeight: metadata.height ?? info.height,
-		frames: (async function* () {
-			yield frame;
-		})(),
-	};
+	return { width: info.width, height: info.height, rgb: data };
 }
 
 async function* withCleanup<T>(
@@ -121,6 +180,8 @@ async function probeMedia(sourcePath: string): Promise<Probe> {
 		"format=duration:stream=width,height:stream_side_data=rotation",
 		"-of",
 		"json",
+		"-protocol_whitelist",
+		"file",
 		sourcePath,
 	]);
 	const parsed = JSON.parse(output.toString()) as {
@@ -143,26 +204,31 @@ async function probeMedia(sourcePath: string): Promise<Probe> {
 }
 
 /**
- * One ffmpeg pass: keep the first frame and then one every duration/maxFrames
- * seconds, scale down to MAX_DECODE_SIZE, and stream them out as PAM (a
- * self-describing raw format, so we always know each frame's size).
+ * One ffmpeg pass selects frames by index for APNG and by timestamp for
+ * other formats. It scales frames down to MAX_DECODE_SIZE and streams them
+ * as PAM so each frame carries its own dimensions.
  */
 async function* streamFrames(
 	sourcePath: string,
 	probe: Probe | null,
 	maxFrames: number,
 	extension: string,
+	frameIndices: number[] | null,
 ): AsyncGenerator<RgbFrame> {
 	const duration = probe?.duration ?? NaN;
 	const hasDuration = Number.isFinite(duration) && duration > 0;
 	const step = hasDuration ? duration / maxFrames : 1e9;
 	const keyframesOnly =
+		!frameIndices &&
 		hasDuration &&
 		duration > KEYFRAMES_ONLY_AFTER_SECONDS &&
 		extension.toLowerCase() !== ".gif";
 
+	const select = frameIndices
+		? frameIndices.map((index) => `eq(n\\,${index})`).join("+")
+		: `isnan(prev_selected_t)+gte(t-prev_selected_t\\,${step.toFixed(4)})`;
 	const filters = [
-		`select='isnan(prev_selected_t)+gte(t-prev_selected_t\\,${step.toFixed(4)})'`,
+		`select='${select}'`,
 		`scale='min(${MAX_DECODE_SIZE},iw)':'min(${MAX_DECODE_SIZE},ih)':force_original_aspect_ratio=decrease`,
 	];
 
@@ -171,7 +237,10 @@ async function* streamFrames(
 		[
 			"-v",
 			"error",
+			...(frameIndices ? ["-xerror"] : []),
 			...(keyframesOnly ? ["-skip_frame", "nokey"] : []),
+			"-protocol_whitelist",
+			"file",
 			"-i",
 			sourcePath,
 			"-vf",
@@ -188,7 +257,11 @@ async function* streamFrames(
 			"image2pipe",
 			"pipe:1",
 		],
-		{ stdio: ["ignore", "pipe", "pipe"] },
+		{
+			stdio: ["ignore", "pipe", "pipe"],
+			timeout: DECODER_TIMEOUT_MS,
+			killSignal: "SIGKILL",
+		},
 	);
 
 	let stderr = "";
@@ -207,8 +280,13 @@ async function* streamFrames(
 			yield flattenOnWhite(frame);
 		}
 		const code = await exited;
-		if (code !== 0 && yielded === 0) {
+		if (code !== 0 || yielded === 0) {
 			throw new Error(`ffmpeg failed (${code}): ${stderr.trim()}`);
+		}
+		if (frameIndices && yielded !== frameIndices.length) {
+			throw new Error(
+				`decoded only ${yielded} of ${frameIndices.length} selected APNG frames`,
+			);
 		}
 	} finally {
 		if (ffmpeg.exitCode === null) {
@@ -351,7 +429,10 @@ function maxAbsoluteDifference(a: Float32Array, b: Float32Array): number {
 
 function collectProcess(command: string, args: string[]): Promise<Buffer> {
 	return new Promise((resolve, reject) => {
-		const child = spawn(command, args);
+		const child = spawn(command, args, {
+			timeout: DECODER_TIMEOUT_MS,
+			killSignal: "SIGKILL",
+		});
 		const stdout: Buffer[] = [];
 		let stderr = "";
 		child.stdout.on("data", (chunk: Buffer) => stdout.push(chunk));

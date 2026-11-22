@@ -93,8 +93,10 @@ export default async function detectEyesTask(
 ): Promise<EyeMatch | null> {
 	const templates = await eyeTemplatesPromise;
 	await hogModelPromise;
+	// Worker messages carry Buffers as Uint8Arrays.
+	const { buffer, byteOffset, byteLength } = task.bytes;
 	const match = await detectEyesInMediaBytes(
-		task.bytes,
+		Buffer.from(buffer, byteOffset, byteLength),
 		task.mediaKind,
 		task.sourceLabel,
 		templates,

@@ -29,6 +29,8 @@ export async function extractPreviewFrame(
 		return await runFfmpegToBuffer([
 			"-v",
 			"error",
+			"-protocol_whitelist",
+			"file",
 			"-i",
 			sourcePath,
 			"-vf",
@@ -51,7 +53,10 @@ export async function extractPreviewFrame(
 
 function runFfmpegToBuffer(args: string[]): Promise<Buffer> {
 	return new Promise((resolve, reject) => {
-		const ffmpeg = spawn("ffmpeg", args);
+		const ffmpeg = spawn("ffmpeg", args, {
+			timeout: 15_000,
+			killSignal: "SIGKILL",
+		});
 		const chunks: Buffer[] = [];
 		let stderr = "";
 		ffmpeg.stdout.on("data", (chunk: Buffer) => chunks.push(chunk));

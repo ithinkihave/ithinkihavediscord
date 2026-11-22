@@ -1,15 +1,21 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { describe, it } from "node:test";
-import { readdir } from "node:fs/promises";
+import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
+import { availableParallelism, tmpdir } from "node:os";
 import path from "node:path";
 import sharp from "sharp";
+import { config } from "../config.ts";
+import { downloadMedia } from "../lib/eyeCheck/download.ts";
 import {
 	collectMediaTargetsFromMessage,
 	detectEyesInLocalMedia,
 	EYES_DETECTION_THRESHOLD,
+	EyesScanBusyError,
 	getEvenlySpacedTimestamps,
 	handleEyesMediaCheck,
 	isEyesChannelMessage,
+	scanMediaUrl,
 	textContainsEyes,
 } from "../lib/eyeCheck/index.ts";
 import { drawMatch } from "../lib/eyeScan.ts";
@@ -23,6 +29,24 @@ describe("eyes media checks", () => {
 		});
 
 		assert.equal(isEyesChannelMessage(message), true);
+	});
+
+	it("limits moderation to the configured channel ID", (t) => {
+		const previous = config.channels.eyesChannelId;
+		t.after(() => {
+			config.channels.eyesChannelId = previous;
+		});
+		config.channels.eyesChannelId = "designated";
+		assert.equal(
+			isEyesChannelMessage(
+				createMockMessage({ channelId: "designated" }),
+			),
+			true,
+		);
+		assert.equal(
+			isEyesChannelMessage(createMockMessage({ channelName: "eyes" })),
+			false,
+		);
 	});
 
 	it("collects media targets from attachments and embeds", () => {
@@ -39,7 +63,11 @@ describe("eyes media checks", () => {
 			],
 			embeds: [
 				{
-					image: { url: "https://example.com/embedded.gif" },
+					image: {
+						url: "https://example.com/embedded.gif",
+						proxyURL:
+							"https://images-ext-1.discordapp.net/external/image",
+					},
 				},
 			],
 		});
@@ -51,8 +79,79 @@ describe("eyes media checks", () => {
 				url: "https://cdn.discordapp.com/test/video.mp4",
 				kind: "animated",
 			},
-			{ url: "https://example.com/embedded.gif", kind: "animated" },
+			{
+				url: "https://images-ext-1.discordapp.net/external/image",
+				kind: "animated",
+			},
 		]);
+	});
+
+	it("rejects external media hosts and disables redirects for approved hosts", async (t) => {
+		const fetch = t.mock.method(
+			globalThis,
+			"fetch",
+			async () => new Response("media"),
+		);
+		await assert.rejects(
+			downloadMedia("https://example.com/image.png"),
+			/approved hosts/,
+		);
+		assert.equal(fetch.mock.callCount(), 0);
+		assert.equal(
+			String(await downloadMedia("https://cdn.discordapp.com/image.png")),
+			"media",
+		);
+		assert.equal(fetch.mock.calls[0]?.arguments[1]?.redirect, "error");
+	});
+
+	it("cancels downloads that exceed the byte cap without a length header", async (t) => {
+		const chunk = new Uint8Array(1024 * 1024);
+		let cancelled = false;
+		t.mock.method(
+			globalThis,
+			"fetch",
+			async () =>
+				new Response(
+					new ReadableStream({
+						pull(controller) {
+							controller.enqueue(chunk);
+						},
+						cancel() {
+							cancelled = true;
+						},
+					}),
+				),
+		);
+		await assert.rejects(
+			downloadMedia("https://cdn.discordapp.com/image.png"),
+			/50 MiB/,
+		);
+		assert.equal(cancelled, true);
+	});
+
+	it("rejects work before downloading when all scan slots are occupied", async (t) => {
+		let finishDownload!: (response: Response) => void;
+		const pendingDownload = new Promise<Response>((resolve) => {
+			finishDownload = resolve;
+		});
+		const fetch = t.mock.method(globalThis, "fetch", () => pendingDownload);
+		const concurrency = Math.min(4, availableParallelism());
+		const url = "https://cdn.discordapp.com/image.png";
+		const active = Promise.allSettled(
+			Array.from({ length: concurrency }, () =>
+				scanMediaUrl(url, "image/png"),
+			),
+		);
+		try {
+			await assert.rejects(
+				scanMediaUrl(url, "image/png"),
+				EyesScanBusyError,
+			);
+			assert.equal(fetch.mock.callCount(), concurrency);
+		} finally {
+			finishDownload(new Response(null, { status: 404 }));
+			await active;
+		}
 	});
 
 	it("scans one target per embed, preferring video over its thumbnail", () => {
@@ -108,6 +207,37 @@ describe("eyes media checks", () => {
 		assert.deepEqual(events, ["send", "delete"]);
 	});
 
+	it("waits for a link embed even when the post already has an attachment", async (t) => {
+		const hit = await readFile(
+			"tests/fixtures/eyes/contains/seal-lets-take-a-look.mp4",
+		);
+		const blank = await readFile("tests/fixtures/eyes/no-eyes/image.png");
+		const link = "https://media1.tenor.com/abc/eyes.mp4";
+		t.mock.method(
+			globalThis,
+			"fetch",
+			async (url: string) =>
+				new Response(new Uint8Array(url === link ? hit : blank)),
+		);
+		t.mock.timers.enable({ apis: ["setTimeout"] });
+		let reacted = false;
+		const message = createMockMessage({
+			channelName: "eyes",
+			content: "https://tenor.com/view/eyes-123",
+			attachments: [{ url: "https://cdn.discordapp.com/test/image.png" }],
+			onFetch: (message) =>
+				Object.assign(message, { embeds: [{ video: { url: link } }] }),
+			onReact: () => {
+				reacted = true;
+			},
+			onDelete: () => assert.fail("the original should survive"),
+		});
+		const check = handleEyesMediaCheck(message);
+		t.mock.timers.tick(1_500);
+		await check;
+		assert.equal(reacted, true);
+	});
+
 	it("spares text with eyes, eye stickers and system messages", async () => {
 		const spared = [
 			createMockMessage({ channelName: "eyes", content: "look 👀" }),
@@ -154,6 +284,76 @@ describe("eyes media checks", () => {
 		const drawn = await sharp((await drawMatch(match))!).metadata();
 		assert.equal(drawn.width, match.frame.width);
 		assert.equal(drawn.height, match.frame.height);
+	});
+
+	it("finds eyes on the second frame of WebP and APNG animations", async (t) => {
+		const reference = await detectEyesInLocalMedia(
+			"tests/fixtures/eyes/contains/seal-lets-take-a-look.mp4",
+			{ includeFrame: true },
+		);
+		assert.ok(reference?.frame);
+		const { width, height, rgb } = reference.frame;
+		const frames = Buffer.concat([
+			Buffer.alloc(width * height * 3, 255),
+			rgb,
+		]);
+
+		const webp = await sharp(frames, {
+			raw: { width, height: height * 2, channels: 3, pageHeight: height },
+		})
+			.webp({ lossless: true, delay: [500, 500] })
+			.toBuffer();
+
+		const workspace = await mkdtemp(path.join(tmpdir(), "test-eyes-apng-"));
+		t.after(() => rm(workspace, { recursive: true, force: true }));
+		const apngPath = path.join(workspace, "animation.apng");
+		const encode = spawnSync(
+			"ffmpeg",
+			[
+				"-v",
+				"error",
+				"-f",
+				"rawvideo",
+				"-pixel_format",
+				"rgb24",
+				"-video_size",
+				`${width}x${height}`,
+				"-framerate",
+				"2",
+				"-i",
+				"pipe:0",
+				"-f",
+				"apng",
+				apngPath,
+			],
+			{ input: frames, encoding: "utf8", timeout: 15_000 },
+		);
+		assert.equal(encode.status, 0, encode.stderr);
+		const apng = await readFile(apngPath);
+
+		t.mock.method(
+			globalThis,
+			"fetch",
+			async (url: string) =>
+				new Response(
+					new Uint8Array(url.endsWith(".webp") ? webp : apng),
+				),
+		);
+		for (const [extension, type] of [
+			["webp", "image/webp"],
+			["png", "image/png"],
+		] as const) {
+			const result = await scanMediaUrl(
+				`https://cdn.discordapp.com/animation.${extension}`,
+				type,
+			);
+			assert.equal(
+				result?.match?.frameIndex,
+				1,
+				`later frame of ${extension}`,
+			);
+		}
+		assert.equal((await detectEyesInLocalMedia(apngPath))?.frameIndex, 1);
 	});
 
 	it("returns five evenly spaced timestamps", () => {
