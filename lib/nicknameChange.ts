@@ -1,14 +1,16 @@
 import { config } from "../config.ts";
 import type { DiscordMessage } from "./messageTypes.ts";
 
+const MAX_NICKNAME_LENGTH = 32;
+
 export function findNicknameChange(text: string): string | null {
 	const content = text.trim();
-	for (const { userId, patterns } of config.nicknameChanges) {
-		if (patterns.some((re) => re.test(content))) {
-			return userId;
-		}
-	}
-	return null;
+	if ([...content].length > MAX_NICKNAME_LENGTH) return null;
+
+	return (
+		config.nicknameChanges.find(({ pattern }) => pattern.test(content))
+			?.userId ?? null
+	);
 }
 
 export async function handleNicknameChanges(

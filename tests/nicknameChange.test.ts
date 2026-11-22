@@ -5,11 +5,11 @@ import {
 	handleNicknameChanges,
 } from "../lib/nicknameChange.ts";
 import { createMockMessage } from "./mocks/message.ts";
-import { config } from "../config.ts";
+import { handleMessage } from "../lib/messageHandler.ts";
 
-const invalidSeUserId = config.nicknameChanges[0]!.userId;
-const hexperiodUserId = config.nicknameChanges[1]!.userId;
-const nathansnailUserId = config.nicknameChanges[2]!.userId;
+const invalidSeUserId = "261232467955023872";
+const hexperiodUserId = "495780356302045195";
+const nathansnailUserId = "553043214374928395";
 
 describe("findNicknameChange", () => {
 	describe("InvalidSE patterns", () => {
@@ -116,6 +116,22 @@ describe("findNicknameChange", () => {
 		it("returns null for empty string", () => {
 			assert.strictEqual(findNicknameChange(""), null);
 		});
+	});
+
+	it("gives explicit prefixes priority when a suffix also matches", () => {
+		assert.strictEqual(findNicknameChange("0xse"), hexperiodUserId);
+		assert.strictEqual(findNicknameChange("0XSnail"), hexperiodUserId);
+		assert.strictEqual(findNicknameChange("nathanSE"), nathansnailUserId);
+		assert.strictEqual(findNicknameChange("InvalidSnail"), invalidSeUserId);
+	});
+
+	it("matches nicknames up to 32 characters after trimming", () => {
+		const nickname = "0x" + "🦎".repeat(30);
+		assert.strictEqual(
+			findNicknameChange(` ${nickname} `),
+			hexperiodUserId,
+		);
+		assert.strictEqual(findNicknameChange(nickname + "🦎"), null);
 	});
 });
 
@@ -224,6 +240,16 @@ describe("handleNicknameChanges", () => {
 		await assert.doesNotReject(() => handleNicknameChanges(message));
 	});
 
+	it("skips long matches without fetching a guild member or reacting", async () => {
+		const message = createMockMessage({
+			content: "0x" + "a".repeat(31),
+			guildMembers: {},
+			onReact: () =>
+				assert.fail("An ignored message should not get a reaction"),
+		});
+		await handleNicknameChanges(message);
+	});
+
 	it("reacts with ✅ on successful nickname change", async () => {
 		const reactions: string[] = [];
 		const message = createMockMessage({
@@ -256,5 +282,61 @@ describe("handleNicknameChanges", () => {
 		});
 		await assert.rejects(() => handleNicknameChanges(message));
 		assert(reactions.includes("❌"));
+	});
+});
+
+describe("nickname changes in the message pipeline", () => {
+	it("sends the usual error image when the nickname update fails", async (t) => {
+		t.mock.method(Math, "random", () => 0.5);
+		t.mock.method(console, "error", () => {});
+		const reactions: string[] = [];
+		const sent: unknown[] = [];
+		const message = createMockMessage({
+			content: "0xse",
+			guildMembers: {
+				[hexperiodUserId]: {
+					setNickname: async () => {
+						throw new Error("Missing Permissions");
+					},
+				},
+			},
+			onReact: (emoji) => {
+				reactions.push(emoji);
+			},
+			onSend: (payload) => sent.push(payload),
+		});
+
+		await handleMessage(message, "messageCreate");
+
+		assert.deepStrictEqual(reactions, ["❌"]);
+		assert.deepStrictEqual(sent, [
+			"https://cdn.discordapp.com/attachments/1487372867153690664/1487372867350958221/IMG-20260328-WA0017.png",
+		]);
+	});
+
+	it("keeps a successful rename when the success reaction fails", async (t) => {
+		t.mock.method(Math, "random", () => 0.5);
+		t.mock.method(console, "error", () => {});
+		const changes: string[] = [];
+		const sent: unknown[] = [];
+		const message = createMockMessage({
+			content: " 0xSE ",
+			guildMembers: {
+				[hexperiodUserId]: {
+					setNickname: async (nickname) => {
+						changes.push(nickname);
+					},
+				},
+			},
+			onReact: () => {
+				throw new Error("Missing Permissions");
+			},
+			onSend: (payload) => sent.push(payload),
+		});
+
+		await handleMessage(message, "messageCreate");
+
+		assert.deepStrictEqual(changes, ["0xSE"]);
+		assert.deepStrictEqual(sent, []);
 	});
 });

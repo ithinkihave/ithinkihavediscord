@@ -14,6 +14,11 @@ import { marketplaceReplies } from "./config/responses/marketplaceReplies.ts";
 import { randomEventReactionIds } from "./config/reactions/randomEvents.ts";
 
 const randomEventReactions = Object.values(randomEventReactionIds);
+const nicknameUserIds = {
+	invalidSe: "261232467955023872",
+	hexperiod: "495780356302045195",
+	nathanSnail: "553043214374928395",
+};
 
 export const config = {
 	/**
@@ -72,20 +77,15 @@ export const config = {
 	},
 
 	/**
-	 * Nickname-change triggers: each entry pairs a user ID with the patterns
-	 * that, when the full message matches, rename that user's nickname to the
-	 * message content.
+	 * The first rule that matches the full message determines whose nickname
+	 * changes. Put explicit prefixes before suffixes so 0xse targets hexperiod.
 	 */
 	nicknameChanges: [
-		// InvalidSE — triggers on (word)SE or Invalid(word)
-		{ userId: "261232467955023872", patterns: [/^.+se$/i, /^invalid.+$/i] },
-		// hexperiod — triggers on 0x(anything)
-		{ userId: "495780356302045195", patterns: [/^0x.+$/i] },
-		// nathansnail — triggers on nathan(anything) or (anything)Snail
-		{
-			userId: "553043214374928395",
-			patterns: [/^nathan.+$/i, /^.+snail$/i],
-		},
+		{ userId: nicknameUserIds.invalidSe, pattern: /^invalid.+$/i },
+		{ userId: nicknameUserIds.hexperiod, pattern: /^0x.+$/i },
+		{ userId: nicknameUserIds.nathanSnail, pattern: /^nathan.+$/i },
+		{ userId: nicknameUserIds.invalidSe, pattern: /^.+se$/i },
+		{ userId: nicknameUserIds.nathanSnail, pattern: /^.+snail$/i },
 	],
 
 	truthCheck: {
