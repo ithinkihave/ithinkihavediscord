@@ -14,6 +14,11 @@ import { marketplaceReplies } from "./config/responses/marketplaceReplies.ts";
 import { randomEventReactionIds } from "./config/reactions/randomEvents.ts";
 
 const randomEventReactions = Object.values(randomEventReactionIds);
+const nicknameUserIds = {
+	invalidSe: "261232467955023872",
+	hexperiod: "495780356302045195",
+	nathanSnail: "553043214374928395",
+};
 
 export const config = {
 	/**
@@ -70,6 +75,18 @@ export const config = {
 		// timezone for the "Today at ..." stamp on the burning message card
 		timeZone: "Pacific/Auckland",
 	},
+
+	/**
+	 * The first rule that matches the full message determines whose nickname
+	 * changes. Put explicit prefixes before suffixes so 0xse targets hexperiod.
+	 */
+	nicknameChanges: [
+		{ userId: nicknameUserIds.invalidSe, pattern: /^invalid.+$/i },
+		{ userId: nicknameUserIds.hexperiod, pattern: /^0x.+$/i },
+		{ userId: nicknameUserIds.nathanSnail, pattern: /^nathan.+$/i },
+		{ userId: nicknameUserIds.invalidSe, pattern: /^.+se$/i },
+		{ userId: nicknameUserIds.nathanSnail, pattern: /^.+snail$/i },
+	],
 
 	truthCheck: {
 		// random responses for true/false truth-check replies

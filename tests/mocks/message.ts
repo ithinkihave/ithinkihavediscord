@@ -1,5 +1,9 @@
 import type { DiscordMessage } from "../../lib/messageTypes.ts";
 
+export type MockMember = {
+	setNickname: (nickname: string) => Promise<void>;
+};
+
 export type MockMessageOptions = {
 	id?: string;
 	content?: string;
@@ -32,6 +36,7 @@ export type MockMessageOptions = {
 	onReact?: (emoji: string) => void | Promise<void>;
 	onReply?: (response: string) => void | Promise<void>;
 	onSend?: (payload: unknown) => unknown;
+	guildMembers?: Record<string, MockMember>;
 };
 
 export function createMockMessage(
@@ -46,9 +51,23 @@ export function createMockMessage(
 	const byId = <T extends { id: string }>(items: T[] = []) =>
 		new Map(items.map((item) => [item.id, item]));
 
+	const guild = options.guildMembers
+		? {
+				members: {
+					fetch: async (userId: string) => {
+						const member = options.guildMembers?.[userId];
+						if (!member)
+							throw new Error(`Member ${userId} not found`);
+						return member;
+					},
+				},
+			}
+		: null;
+
 	const message = {
 		id: options.id ?? "1234567890",
 		content: options.content ?? "hello",
+		guild,
 		type: options.type ?? 0,
 		createdAt: new Date("2026-10-08T07:42:00Z"),
 		editedTimestamp: null,
