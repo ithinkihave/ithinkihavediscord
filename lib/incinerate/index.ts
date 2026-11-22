@@ -53,8 +53,58 @@ export type IncinerateOptions = {
 	// random when not given
 	effect?: EffectName;
 	timeZone?: string;
+	expectedVersion?: string;
 	scheduleCleanup?: (cleanup: () => void, delayMs: number) => void;
 };
+
+export function messageVersion(
+	message: Pick<
+		DiscordMessage,
+		"content" | "editedTimestamp" | "attachments" | "stickers" | "embeds"
+	>,
+): string {
+	return JSON.stringify([
+		message.content,
+		message.editedTimestamp,
+		[...message.attachments.keys()],
+		[...message.stickers.keys()],
+		message.embeds.map((embed) => [
+			embed.url,
+			embed.video?.url ?? embed.video?.proxyURL,
+			embed.image?.url ?? embed.image?.proxyURL,
+			embed.thumbnail?.url ?? embed.thumbnail?.proxyURL,
+		]),
+	]);
+}
+
+async function isCurrentVersion(
+	message: DiscordMessage,
+	expected: string,
+): Promise<boolean> {
+	if (messageVersion(message) !== expected) {
+		return false;
+	}
+	try {
+		const current = await message.channel?.messages.fetch({
+			message: message.id,
+			force: true,
+			cache: false,
+		});
+		return (
+			current != null &&
+			messageVersion(current) === expected &&
+			messageVersion(message) === expected
+		);
+	} catch (error) {
+		if ((error as { code?: number }).code !== UNKNOWN_MESSAGE) {
+			console.error(
+				"[bot] failed refreshing message before incineration",
+				error,
+			);
+		}
+		return false;
+	}
+}
 
 /**
  * Replaces a message with an animation of itself being destroyed (burnt,
@@ -66,6 +116,10 @@ export async function incinerateMessage(
 	message: DiscordMessage,
 	options: IncinerateOptions = {},
 ): Promise<void> {
+	const expected = options.expectedVersion ?? messageVersion(message);
+	if (messageVersion(message) !== expected) {
+		return;
+	}
 	const effect = options.effect ?? pickEffect();
 	const startedAt = performance.now();
 	const rendered = await renderMessageEffect(message, effect, options).catch(
@@ -78,33 +132,46 @@ export async function incinerateMessage(
 		},
 	);
 
+	if (!(await isCurrentVersion(message, expected))) {
+		return;
+	}
 	if (!rendered || typeof message.channel?.send !== "function") {
 		await message.delete();
 		return;
 	}
 
 	const renderedAt = performance.now();
+	const spoiler =
+		[...message.attachments.values()].some(
+			(attachment) => attachment.spoiler,
+		) || /\|\|[\s\S]+?\|\|/.test(message.content ?? "");
+	const attachment = new AttachmentBuilder(rendered.data, {
+		name: `incinerated.${rendered.format}`,
+	}).setSpoiler(spoiler);
 	// Upload first, delete second: the animation opens on the intact message, so
 	// the swap looks seamless instead of leaving a gap while it uploads.
 	const sent: Message = await message.channel.send({
 		content: CAPTION,
-		files: [
-			new AttachmentBuilder(rendered.data, {
-				name: `incinerated.${rendered.format}`,
-			}),
-		],
+		files: [attachment],
 		allowedMentions: { parse: [] },
 	});
 
+	const removeReplacement = () =>
+		sent.delete().catch((error: unknown) => {
+			console.error("[bot] failed cleaning up incineration", error);
+		});
+	if (!(await isCurrentVersion(message, expected))) {
+		await removeReplacement();
+		return;
+	}
 	try {
 		await message.delete();
 	} catch (error) {
-		// already gone (the author got there first) is as good as deleted
+		await removeReplacement();
 		if ((error as { code?: number }).code !== UNKNOWN_MESSAGE) {
-			// can't remove the original, so don't leave a fake funeral behind
-			await sent.delete().catch(() => {});
 			throw error;
 		}
+		return;
 	}
 	console.log(
 		`[bot] ${effect} sent: render ${Math.round(renderedAt - startedAt)}ms, upload+delete ${Math.round(performance.now() - renderedAt)}ms, ${(rendered.data.length / 1024).toFixed(0)}KB ${rendered.format}`,
@@ -114,11 +181,7 @@ export async function incinerateMessage(
 		options.scheduleCleanup ??
 		// a pending cleanup shouldn't hold the process open on shutdown
 		((cleanup, delayMs) => void setTimeout(cleanup, delayMs).unref());
-	schedule(() => {
-		sent.delete().catch((error: unknown) => {
-			console.error("[bot] failed cleaning up incineration", error);
-		});
-	}, rendered.durationMs + LINGER_AFTER_EFFECT_MS);
+	schedule(removeReplacement, rendered.durationMs + LINGER_AFTER_EFFECT_MS);
 }
 
 /** A random effect, never the same one twice in a row. */

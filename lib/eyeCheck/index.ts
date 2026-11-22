@@ -1,7 +1,7 @@
 import { MessageType } from "discord.js";
 import { config } from "../../config.ts";
 import type { DiscordMessage } from "../messageTypes.ts";
-import { incinerateMessage } from "../incinerate/index.ts";
+import { incinerateMessage, messageVersion } from "../incinerate/index.ts";
 import { readFile } from "node:fs/promises";
 import { availableParallelism } from "node:os";
 import path from "node:path";
@@ -71,8 +71,8 @@ type TargetResult =
 
 export function isEyesChannelMessage(message: DiscordMessage): boolean {
 	const configuredChannelId = config.channels.eyesChannelId;
-	if (configuredChannelId && message.channel?.id === configuredChannelId) {
-		return true;
+	if (configuredChannelId) {
+		return message.channel?.id === configuredChannelId;
 	}
 
 	const channelName =
@@ -181,29 +181,31 @@ function isUserPost(message: DiscordMessage): boolean {
 export async function handleEyesMediaCheck(
 	message: DiscordMessage,
 ): Promise<boolean> {
-	if (!isEyesChannelMessage(message)) {
+	if (!isEyesChannelMessage(message) || !isUserPost(message)) {
 		return false;
 	}
 
-	let targets = collectMediaTargetsFromMessage(message);
-	if (targets.length === 0 && hasUnresolvedLink(message)) {
-		message = await waitForEmbeds(message);
-		targets = collectMediaTargetsFromMessage(message);
+	if (hasUnresolvedLink(message)) {
+		const refreshed = await waitForEmbeds(message);
+		if (!refreshed) {
+			return true;
+		}
+		message = refreshed;
 	}
 
+	const targets = collectMediaTargetsFromMessage(message);
+	const incineration = {
+		expectedVersion: messageVersion(message),
+		timeZone: config.eyes.timeZone,
+		format: config.eyes.effectFormat,
+	};
+
 	if (targets.length === 0) {
-		if (
-			!config.eyes.filterTextMessages ||
-			!isUserPost(message) ||
-			messageTextHasEyes(message)
-		) {
+		if (!config.eyes.filterTextMessages || messageTextHasEyes(message)) {
 			return false;
 		}
 		console.log("[bot] text-only post without eyes, incinerating");
-		await incinerateMessage(message, {
-			timeZone: config.eyes.timeZone,
-			format: config.eyes.effectFormat,
-		});
+		await incinerateMessage(message, incineration);
 		return true;
 	}
 
@@ -237,6 +239,7 @@ export async function handleEyesMediaCheck(
 	);
 	const firstScanned = outcome.results.find((result) => "bytes" in result);
 	await incinerateMessage(message, {
+		...incineration,
 		media:
 			firstScanned && "bytes" in firstScanned
 				? {
@@ -244,8 +247,6 @@ export async function handleEyesMediaCheck(
 						sourceLabel: firstScanned.target.url,
 					}
 				: null,
-		timeZone: config.eyes.timeZone,
-		format: config.eyes.effectFormat,
 	});
 	return true;
 }
@@ -316,15 +317,16 @@ function hasUnresolvedLink(message: DiscordMessage): boolean {
 	);
 }
 
-async function waitForEmbeds(message: DiscordMessage): Promise<DiscordMessage> {
+async function waitForEmbeds(
+	message: DiscordMessage,
+): Promise<DiscordMessage | null> {
 	let current = message;
 	for (let attempt = 0; attempt < EMBED_WAIT_ATTEMPTS; attempt += 1) {
 		await new Promise((resolve) => setTimeout(resolve, EMBED_WAIT_MS));
 		try {
 			current = await current.fetch(true);
 		} catch {
-			// deleted while we waited, or no access; nothing to do
-			return current;
+			return null;
 		}
 		if (current.embeds.length > 0) {
 			break;

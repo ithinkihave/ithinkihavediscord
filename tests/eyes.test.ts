@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { readdir } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
+import { config } from "../config.ts";
 import {
 	collectMediaTargetsFromMessage,
 	detectEyesInLocalMedia,
@@ -23,6 +24,24 @@ describe("eyes media checks", () => {
 		});
 
 		assert.equal(isEyesChannelMessage(message), true);
+	});
+
+	it("limits moderation to the configured channel ID", (t) => {
+		const previous = config.channels.eyesChannelId;
+		t.after(() => {
+			config.channels.eyesChannelId = previous;
+		});
+		config.channels.eyesChannelId = "designated";
+		assert.equal(
+			isEyesChannelMessage(
+				createMockMessage({ channelId: "designated" }),
+			),
+			true,
+		);
+		assert.equal(
+			isEyesChannelMessage(createMockMessage({ channelName: "eyes" })),
+			false,
+		);
 	});
 
 	it("collects media targets from attachments and embeds", () => {
@@ -106,6 +125,37 @@ describe("eyes media checks", () => {
 
 		assert.equal(await handleEyesMediaCheck(message), true);
 		assert.deepEqual(events, ["send", "delete"]);
+	});
+
+	it("waits for a link embed even when the post already has an attachment", async (t) => {
+		const hit = await readFile(
+			"tests/fixtures/eyes/contains/seal-lets-take-a-look.mp4",
+		);
+		const blank = await readFile("tests/fixtures/eyes/no-eyes/image.png");
+		const link = "https://media.tenor.com/abc/eyes.mp4";
+		t.mock.method(
+			globalThis,
+			"fetch",
+			async (url: string) =>
+				new Response(new Uint8Array(url === link ? hit : blank)),
+		);
+		t.mock.timers.enable({ apis: ["setTimeout"] });
+		let reacted = false;
+		const message = createMockMessage({
+			channelName: "eyes",
+			content: "https://tenor.com/view/eyes-123",
+			attachments: [{ url: "https://cdn.discordapp.com/test/image.png" }],
+			onFetch: (message) =>
+				Object.assign(message, { embeds: [{ video: { url: link } }] }),
+			onReact: () => {
+				reacted = true;
+			},
+			onDelete: () => assert.fail("the original should survive"),
+		});
+		const check = handleEyesMediaCheck(message);
+		t.mock.timers.tick(1_500);
+		await check;
+		assert.equal(reacted, true);
 	});
 
 	it("spares text with eyes, eye stickers and system messages", async () => {

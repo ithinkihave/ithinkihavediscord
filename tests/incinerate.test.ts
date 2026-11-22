@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import type { AttachmentBuilder } from "discord.js";
 import { describe, it } from "node:test";
 import {
 	getFrameCount,
@@ -174,7 +175,7 @@ describe("incineration", () => {
 		);
 	});
 
-	it("carries on if the original was deleted while rendering", async () => {
+	it("removes the replacement when the original disappears during the swap", async () => {
 		const events: string[] = [];
 		const message = createMockMessage({
 			author: { username: "someone" },
@@ -193,7 +194,44 @@ describe("incineration", () => {
 		await incinerateMessage(message, {
 			scheduleCleanup: () => events.push("cleanup scheduled"),
 		});
-		assert.deepEqual(events, ["cleanup scheduled"]);
+		assert.deepEqual(events, ["delete burn"]);
+	});
+
+	it("keeps an edit made during upload and removes the replacement", async () => {
+		const events: string[] = [];
+		const message = createMockMessage({
+			onDelete: () => assert.fail("the edited original should survive"),
+			onFetch: (message) =>
+				events.length === 0
+					? message
+					: createMockMessage({ content: "hello 👀" }),
+			onSend: () => {
+				events.push("send burn");
+				return { delete: async () => void events.push("delete burn") };
+			},
+		});
+
+		await incinerateMessage(message);
+		assert.deepEqual(events, ["send burn", "delete burn"]);
+	});
+
+	it("marks the replacement as a spoiler when a source attachment is hidden", async () => {
+		const message = createMockMessage({
+			attachments: [
+				{
+					url: "https://cdn.discordapp.com/test/SPOILER_image.png",
+					spoiler: true,
+				},
+			],
+			onSend: (payload) => {
+				const [attachment] = (payload as { files: AttachmentBuilder[] })
+					.files;
+				assert.equal(attachment?.spoiler, true);
+				return { delete: async () => {} };
+			},
+		});
+
+		await incinerateMessage(message, { scheduleCleanup: () => {} });
 	});
 
 	it("pulls the burn back down if the original can't be deleted", async () => {

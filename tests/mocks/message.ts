@@ -5,7 +5,11 @@ export type MockMessageOptions = {
 	content?: string;
 	channelId?: string;
 	channelName?: string;
-	attachments?: Array<{ url: string; contentType?: string | null }>;
+	attachments?: Array<{
+		url: string;
+		contentType?: string | null;
+		spoiler?: boolean;
+	}>;
 	embeds?: Array<{
 		image?: { url?: string };
 		thumbnail?: { url?: string };
@@ -22,6 +26,9 @@ export type MockMessageOptions = {
 		channels?: Array<{ id: string; name: string }>;
 	};
 	onDelete?: () => void | Promise<void>;
+	onFetch?: (
+		message: DiscordMessage,
+	) => DiscordMessage | Promise<DiscordMessage>;
 	onReact?: (emoji: string) => void | Promise<void>;
 	onReply?: (response: string) => void | Promise<void>;
 	onSend?: (payload: unknown) => unknown;
@@ -39,7 +46,7 @@ export function createMockMessage(
 	const byId = <T extends { id: string }>(items: T[] = []) =>
 		new Map(items.map((item) => [item.id, item]));
 
-	return {
+	const message = {
 		id: options.id ?? "1234567890",
 		content: options.content ?? "hello",
 		type: options.type ?? 0,
@@ -69,12 +76,17 @@ export function createMockMessage(
 			async send(payload: unknown) {
 				return options.onSend?.(payload);
 			},
+			messages: { fetch: () => message.fetch() },
 		},
 		attachments: new Map(attachmentEntries),
 		embeds: options.embeds ?? [],
 		stickers: new Map(stickerEntries),
 		async delete() {
 			await options.onDelete?.();
+		},
+		async fetch() {
+			const message = this as unknown as DiscordMessage;
+			return options.onFetch?.(message) ?? message;
 		},
 		async react(emoji: string) {
 			await options.onReact?.(emoji);
@@ -83,4 +95,5 @@ export function createMockMessage(
 			await options.onReply?.(response);
 		},
 	} as unknown as DiscordMessage;
+	return message;
 }
