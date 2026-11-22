@@ -45,6 +45,9 @@ export const config = {
 
 		// The channel ID designated for messages deemed 'happy' by sentiment analysis
 		happyChannelId: "1489797249734148188",
+
+		// Optional channel ID for the eyes media scanner; if empty, channel name fallback is used
+		eyesChannelId: "",
 	},
 
 	/**
@@ -53,6 +56,19 @@ export const config = {
 	emotes: {
 		// Emoji ID used to react to happy messages via sentiment analysis
 		happyReactionEmoteId: "1489800033359364259",
+	},
+
+	eyes: {
+		// burn text-only posts in the eyes channel that have no 👀 in them too;
+		// set false to only police media
+		filterTextMessages: true,
+
+		// "webp" (a third the size, animates inline) or "gif" for the
+		// incineration animations
+		effectFormat: "webp" as "webp" | "gif",
+
+		// timezone for the "Today at ..." stamp on the burning message card
+		timeZone: "Pacific/Auckland",
 	},
 
 	truthCheck: {

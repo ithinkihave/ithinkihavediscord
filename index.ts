@@ -31,6 +31,11 @@ import {
 	VERSION_COMMAND_NAME,
 	versionCommandData,
 } from "./lib/versionCheck.ts";
+import {
+	EYESCAN_COMMAND_NAME,
+	eyescanCommandData,
+	handleEyescanCommand,
+} from "./lib/eyeScan.ts";
 
 type CommandHandler = (
 	interaction: ChatInputCommandInteraction,
@@ -41,6 +46,7 @@ const commandHandlers = new Map<CommandName, CommandHandler>([
 	[GLUP_COMMAND_NAME, handleGlupCommand as CommandHandler],
 	[EMOJI_WAR_COMMAND_NAME, handleEmojiWarCommand as CommandHandler],
 	[VERSION_COMMAND_NAME, handleVersionCommand as CommandHandler],
+	[EYESCAN_COMMAND_NAME, handleEyescanCommand as CommandHandler],
 ]);
 
 const client = new Client({
@@ -139,6 +145,7 @@ async function registerSlashCommands<Ready extends boolean = boolean>(
 		glupCommandData,
 		emojiWarCommandData,
 		versionCommandData,
+		eyescanCommandData,
 	]);
 	console.log("[bot] registered slash commands globally");
 }
