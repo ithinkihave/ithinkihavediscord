@@ -18,7 +18,8 @@ const templatePath = fileURLToPath(
 // Keep the legs and crop the sides to match the portrait meme.
 const portrait = { left: 85, top: 0, width: 491, height: 665 };
 const replacementBox = { left: 63, top: 70, width: 330, height: 295 };
-const captionBox = { x: 0, y: 573, width: portrait.width, height: 87 };
+// Width estimates can run short for rows of wide glyphs in the fallback font.
+const captionBox = { x: 83, y: 573, width: portrait.width - 166, height: 87 };
 
 export const DAMN_BIRD_COMMAND_NAME = "damnnnnn" satisfies CommandName;
 
