@@ -82,6 +82,26 @@ In the configured "happy" channel 😊, all missives are passed through an AI-po
 - missives of positive sentiment doth receive a 👍 reaction, reinforcing healthy community behaviours most wholesome 🌱
 - missives scoring below `0.2` are removed 🗑️ to safeguard the channel's net-promoter score most zealously 📊
 
+### Eyes channel — visual compliance & offboarding experience
+
+In the 👀 channel (by configured ID, else any channel named `eyes` or `👀`), every image, gif, video, sticker and tenor-style link embed is passed through our proprietary 👀-detection engine, a multi-scale template-matching pipeline most discerning:
+
+- missives found to contain 👀 doth receive a 👀 reaction, recognising best-practice ocular alignment
+- missives found wanting are **incinerated**: the bot doth render a faithful likeness of the offending missive (avatar, name, role colour and all), posteth an animation of said likeness meeting its end, deleteth the original, and anon deleteth the animation too, leaving no trace most tidy. Fate doth choose the manner of departure, never the same twice running:
+    - **burn**: consumed by a ragged front of flame, embers and all
+    - **dust**: crumbled to flakes upon the wind, as by a certain snap of the fingers
+    - **melt**: rent asunder in the manner of a certain 1993 screen wipe
+    - **crt**: switched off like a cathode-ray telly of yore
+    - **black hole**: drawn past the event horizon
+- text-only missives are held to the 👀 standard as well: those without a 👀 (or an eye-themed custom emoji or sticker) are likewise incinerated, whilst pins, joins and other system notices are spared; set `config.eyes.filterTextMessages` to `false` to police media alone
+- animated media is sampled at up to five frames, including animated WebP and APNG
+- the missive is spared if the scanner is busy or the media cannot be downloaded or decoded. Downloads use Discord’s media proxy or approved media hosts and have a 50 MiB limit
+- the animations ship as animated WebP, a third the weight of GIF; set `config.eyes.effectFormat` to `gif` should any client prove obstinate
+
+The `/eyescan` command doth let the cautious test their media beforehand, replying with the frame wherein the 👀 was found, boxed and scored.
+
+The bot requireth the **Manage Messages**, **Attach Files** and **Read Message History** permissions in that channel, and `ffmpeg` upon the host (the CapRover image doth install it, along with Noto fonts for rendering likenesses most true).
+
 ## Technology stack 🛠️
 
 Our lean, cloud-native 🌐 technology stack is optimised for rapid iteration ⚡ and low operational overhead most efficient 💰:
@@ -168,4 +188,4 @@ To mint a release most grand 🎉, thou shouldst create a release candidate bran
 
 ### ⚙️ Configuration architecture — settings governance
 
-Configuration doth reside in `config.ts` 📄 for broad cross-cutting settings leveraged across many modules 🔧, and `config/*/*.json` 🗂️ for storing large, expanding data assets of the realm most precious 💎.
+Configuration doth reside in `config.ts` 📄 for broad cross-cutting settings leveraged across many modules 🔧, and `config/*/*.(json|ts)` 🗂️ for storing large, expanding data assets of the realm most precious 💎.

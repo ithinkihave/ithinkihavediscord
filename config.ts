@@ -14,6 +14,11 @@ import { marketplaceReplies } from "./config/responses/marketplaceReplies.ts";
 import { randomEventReactionIds } from "./config/reactions/randomEvents.ts";
 
 const randomEventReactions = Object.values(randomEventReactionIds);
+const nicknameUserIds = {
+	invalidSe: "261232467955023872",
+	hexperiod: "495780356302045195",
+	nathanSnail: "553043214374928395",
+};
 
 export const config = {
 	/**
@@ -45,6 +50,9 @@ export const config = {
 
 		// The channel ID designated for messages deemed 'happy' by sentiment analysis
 		happyChannelId: "1489797249734148188",
+
+		// Optional channel ID for the eyes media scanner; if empty, channel name fallback is used
+		eyesChannelId: "",
 	},
 
 	/**
@@ -54,6 +62,31 @@ export const config = {
 		// Emoji ID used to react to happy messages via sentiment analysis
 		happyReactionEmoteId: "1489800033359364259",
 	},
+
+	eyes: {
+		// burn text-only posts in the eyes channel that have no 👀 in them too;
+		// set false to only police media
+		filterTextMessages: true,
+
+		// "webp" (a third the size, animates inline) or "gif" for the
+		// incineration animations
+		effectFormat: "webp" as "webp" | "gif",
+
+		// timezone for the "Today at ..." stamp on the burning message card
+		timeZone: "Pacific/Auckland",
+	},
+
+	/**
+	 * The first rule that matches the full message determines whose nickname
+	 * changes. Put explicit prefixes before suffixes so 0xse targets hexperiod.
+	 */
+	nicknameChanges: [
+		{ userId: nicknameUserIds.invalidSe, pattern: /^invalid.+$/i },
+		{ userId: nicknameUserIds.hexperiod, pattern: /^0x.+$/i },
+		{ userId: nicknameUserIds.nathanSnail, pattern: /^nathan.+$/i },
+		{ userId: nicknameUserIds.invalidSe, pattern: /^.+se$/i },
+		{ userId: nicknameUserIds.nathanSnail, pattern: /^.+snail$/i },
+	],
 
 	truthCheck: {
 		// random responses for true/false truth-check replies
