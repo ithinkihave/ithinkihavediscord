@@ -42,6 +42,14 @@ Example:
 
 ![The glup template with a lambda expression as text](img/glup-lambda.gif)
 
+### `/damnnnnn`
+
+Adds a required caption to the damn bird meme. Upload an optional `image` to place over the bird's body. It scales to fit while keeping its aspect ratio. Animated uploads use the first frame.
+
+```text
+/damnnnnn caption: SATURATION!!! image: saturation.png
+```
+
 ## Automated message behaviours 💌
 
 ### 🏷️ Server rename — brand-identity module
@@ -145,7 +153,7 @@ Execute the following ▶️ to bring the platform live and flourishing 🚀:
 npm start
 ```
 
-Upon successful initialisation ✅, the bot 🤖 doth auto-register the `/gpa`, `/glup`, and `/emoji-war` slash commands 🕹️ for the target guild, delivering an instant command-line product experience most splendid 🚀.
+Upon successful initialisation ✅, the bot 🤖 doth auto-register its slash commands globally.
 
 ## Quality assurance & test coverage 🧪
 

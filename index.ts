@@ -15,6 +15,11 @@ import {
 	handleGlupCommand,
 } from "./lib/glupCheck.ts";
 import {
+	DAMN_BIRD_COMMAND_NAME,
+	damnBirdCommandData,
+	handleDamnBirdCommand,
+} from "./lib/damnBird.ts";
+import {
 	handleMessage,
 	hydrateMessage,
 	shouldIgnoreMessage,
@@ -44,6 +49,7 @@ type CommandHandler = (
 const commandHandlers = new Map<CommandName, CommandHandler>([
 	[GPA_COMMAND_NAME, handleGpaCommand as CommandHandler],
 	[GLUP_COMMAND_NAME, handleGlupCommand as CommandHandler],
+	[DAMN_BIRD_COMMAND_NAME, handleDamnBirdCommand as CommandHandler],
 	[EMOJI_WAR_COMMAND_NAME, handleEmojiWarCommand as CommandHandler],
 	[VERSION_COMMAND_NAME, handleVersionCommand as CommandHandler],
 	[EYESCAN_COMMAND_NAME, handleEyescanCommand as CommandHandler],
@@ -143,6 +149,7 @@ async function registerSlashCommands<Ready extends boolean = boolean>(
 	await client.application.commands.set([
 		gpaCommandData,
 		glupCommandData,
+		damnBirdCommandData,
 		emojiWarCommandData,
 		versionCommandData,
 		eyescanCommandData,
