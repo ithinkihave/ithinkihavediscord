@@ -42,6 +42,12 @@ Example:
 
 ![The glup template with a lambda expression as text](img/glup-lambda.gif)
 
+### `/wordlehint` 🐴
+
+Sends a random horse GIF captioned `wordle hint: horse`. The bot also replies with a hint whenever Wordle bot (`1211781489931452447`) posts a new message.
+
+The pool contains 102 GIFs from [Tenor](https://tenor.com/search/horse-gifs). If a clip fails to load or render, the bot uses one of three bundled GIFs from Wikimedia Commons. [Gallop](https://commons.wikimedia.org/wiki/File:Muybridge_horse_gallop_animated.gif), [racehorse](https://commons.wikimedia.org/wiki/File:Muybridge_race_horse_animated_184px.gif), [rotoscope by Yodalr](https://commons.wikimedia.org/wiki/File:Horse_gif.gif).
+
 ## Automated message behaviours 💌
 
 ### 🏷️ Server rename — brand-identity module

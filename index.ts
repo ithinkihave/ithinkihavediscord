@@ -36,6 +36,12 @@ import {
 	eyescanCommandData,
 	handleEyescanCommand,
 } from "./lib/eyeScan.ts";
+import {
+	WORDLEHINT_COMMAND_NAME,
+	handleWordleHintCommand,
+	handleWordleHintPost,
+	wordleHintCommandData,
+} from "./lib/wordleHint.ts";
 
 type CommandHandler = (
 	interaction: ChatInputCommandInteraction,
@@ -47,6 +53,7 @@ const commandHandlers = new Map<CommandName, CommandHandler>([
 	[EMOJI_WAR_COMMAND_NAME, handleEmojiWarCommand as CommandHandler],
 	[VERSION_COMMAND_NAME, handleVersionCommand as CommandHandler],
 	[EYESCAN_COMMAND_NAME, handleEyescanCommand as CommandHandler],
+	[WORDLEHINT_COMMAND_NAME, handleWordleHintCommand],
 ]);
 
 const client = new Client({
@@ -70,6 +77,10 @@ client.on("ready", (client) => {
 });
 
 client.on("messageCreate", async (message) => {
+	await handleWordleHintPost(message, client.user?.id).catch((error) => {
+		console.error("[bot] error posting Wordle hint", error);
+	});
+
 	try {
 		if (await shouldIgnoreMessage(message, client.user?.id)) return;
 		await handleMessage(message, "messageCreate");
@@ -146,6 +157,7 @@ async function registerSlashCommands<Ready extends boolean = boolean>(
 		emojiWarCommandData,
 		versionCommandData,
 		eyescanCommandData,
+		wordleHintCommandData,
 	]);
 	console.log("[bot] registered slash commands globally");
 }
